@@ -1,32 +1,6 @@
 ## ⭐SurvTRACE: Transformers for Survival Analysis with Competing Events
 
-This repo provides the implementation of **SurvTRACE** for survival analysis. It is easy to use with only the following codes:
-
-```python
-from survtrace.dataset import load_data
-from survtrace.model import SurvTraceSingle
-from survtrace import Evaluator
-from survtrace import Trainer
-from survtrace import STConfig
-
-# use METABRIC dataset
-STConfig['data'] = 'metabric'
-df, df_train, df_y_train, df_test, df_y_test, df_val, df_y_val = load_data(STConfig)
-
-# initialize model
-model = SurvTraceSingle(STConfig)
-
-# execute training
-trainer = Trainer(model)
-trainer.fit((df_train, df_y_train), (df_val, df_y_val))
-
-# evaluating
-evaluator = Evaluator(df, df_train.index)
-evaluator.eval(model, (df_test, df_y_test))
-
-print("done!")
-```
-
+This repo provides the implementation of **SurvTRACE** for survival analysis.
 
 
 ### 🔥See the demo
@@ -50,6 +24,11 @@ or try to install from the requirement.txt
 pip3 install -r requirements.txt
 ```
 
+If pytorch cannot find CUDA, try un-installing and re-installing pytorch
+```
+conda remove pytorch torchvision torchaudio cudatoolkit
+conda install pytorch torchvision torchaudio cudatoolkit=10.2 -c pytorch
+```
 
 
 ### 🔥How to get SEER data
@@ -75,25 +54,3 @@ Click on the 'excute' icon to request from the seer database. We will obtain a c
    we will obtain the processed seer data named **seer_processed.csv**.
 
 
-
-### 📝Functions
-
-- [x] single event survival analysis
-- [x] competing events survival analysis
-- [ ] multi-task learning
-- [ ] automatic hyperparameter grid-search
-
-
-
-### :smile:If you find this result interesting, please consider to cite this paper:
-
-```latex
-@article{wang2021survtrace,
-      title={Surv{TRACE}: Transformers for Survival Analysis with Competing Events}, 
-      author={Zifeng Wang and Jimeng Sun},
-      year={2021},
-      eprint={2110.00855},
-      archivePrefix={arXiv},
-      primaryClass={cs.LG}
-}
-```

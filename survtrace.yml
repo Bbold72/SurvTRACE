@@ -11,7 +11,8 @@ dependencies:
   - pytorch
   - torchvision
   - torchaudio
-  - cudatoolkit=11.1
+  - cudatoolkit=10.2
+  - jupyter
   - pip:
     - scikit-survival==0.14.0
     - torchtuples==0.2.2
