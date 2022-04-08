@@ -6,12 +6,13 @@ import pickle
 from sksurv.metrics import concordance_index_ipcw
 import time
 
-import torch # For building the networks 
 import torchtuples as tt # Some useful functions
 
 from pycox.models import CoxPH
 
 from baselines.data_class import Data
+from baselines.models import simple_dln
+
 
 num_runs = 1
 datasets = ['metabric', 'support']
@@ -23,7 +24,8 @@ config_metabric = EasyDict({
     'batch_size': 64,
     'learning_rate': 0.01,
     'epochs': 100,
-    'hidden_size': 32
+    'hidden_size': 32,
+    'dropout': 0.1
 })
 config_support = EasyDict({
     'data': 'support',
@@ -31,7 +33,8 @@ config_support = EasyDict({
     'batch_size': 128,
     'learning_rate': 0.01,
     'epochs': 100,
-    'hidden_size': 32
+    'hidden_size': 32,
+    'dropout': 0.1
 })
 
 for dataset_name in datasets:
@@ -49,23 +52,8 @@ for dataset_name in datasets:
         data = Data(config)
 
         # define neural network
-        out_features = 1
-        dropout = 0.1
-        hidden_size = config.hidden_size
-
-        net = torch.nn.Sequential(
-                torch.nn.Linear(config.num_feature, hidden_size),
-                torch.nn.ReLU(),
-                torch.nn.BatchNorm1d(hidden_size),
-                torch.nn.Dropout(dropout),
-                
-                torch.nn.Linear(hidden_size, hidden_size),
-                torch.nn.ReLU(),
-                torch.nn.BatchNorm1d(hidden_size),
-                torch.nn.Dropout(),
-                
-                torch.nn.Linear(hidden_size, out_features)
-                )
+        config.out_feature = 1   # need to overwrite value set in load_data
+        net = simple_dln(config)
 
         # initialize model
         model = CoxPH(net, tt.optim.Adam)

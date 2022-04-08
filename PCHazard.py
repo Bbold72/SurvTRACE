@@ -6,12 +6,13 @@ import pickle
 from sksurv.metrics import concordance_index_ipcw
 import time
 
-import torch # For building the networks 
 import torchtuples as tt # Some useful functions
 
 from pycox.models import PCHazard
 
 from baselines.data_class import Data
+from baselines.models import simple_dln
+
 
 num_runs = 1
 # datasets = ['metabric', 'support', ('seer', 'event_0'), ('seer', 'event_1')]
@@ -25,6 +26,7 @@ config_metabric = EasyDict({
     'learning_rate': 0.01,
     'epochs': 50,
     'hidden_size': 32,
+    'dropout': 0.1,
     'val_batch_size': None 
 })
 config_support = EasyDict({
@@ -34,6 +36,7 @@ config_support = EasyDict({
     'learning_rate': 0.01,
     'epochs': 50,
     'hidden_size': 32,
+    'dropout': 0.1,
     'val_batch_size': None
 })
 config_seer = EasyDict({
@@ -43,6 +46,7 @@ config_seer = EasyDict({
     'learning_rate': 0.01,
     'epochs': 100,
     'hidden_size': 32,
+    'dropout': 0.1,
     'val_batch_size': 10000,
     # event_0: Heart Disease
     # event_1: Breast Cancer
@@ -80,22 +84,7 @@ for dataset_name in datasets:
         data = Data(config)
 
         # define neural network
-        hidden_size = config.hidden_size
-        dropout = 0.1
-
-        net = torch.nn.Sequential(
-            torch.nn.Linear(config.num_feature, hidden_size),
-            torch.nn.ReLU(),
-            torch.nn.BatchNorm1d(hidden_size),
-            torch.nn.Dropout(dropout),
-            
-            torch.nn.Linear(hidden_size, hidden_size),
-            torch.nn.ReLU(),
-            torch.nn.BatchNorm1d(hidden_size),
-            torch.nn.Dropout(dropout),
-            
-            torch.nn.Linear(hidden_size, config.out_feature)
-        )
+        net = simple_dln(config)
 
         # initalize model
         model = PCHazard(net, tt.optim.Adam, duration_index=np.array(config['duration_index'], dtype='float32'))
