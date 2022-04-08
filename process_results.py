@@ -8,7 +8,7 @@ for file_name in os.listdir(Path('results')):
 
     with open(Path('results', file_name), 'rb') as f:
         result = pickle.load(f)
-
+        
     result = pd.DataFrame(result)
 
     print(file_name)
