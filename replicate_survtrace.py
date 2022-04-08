@@ -82,6 +82,8 @@ for dataset_name in datasets:
         run = evaluator.eval(model, (df_test, df_y_test))
         run['train_time'] = train_time_finish - train_time_start
 
+        runs_list.append(run)
+
             
     file_name = 'survtrace' + '_' + STConfig['data'] + '.pickle'
     with open(Path('results', file_name), 'wb') as f:
