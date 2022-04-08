@@ -11,11 +11,11 @@ import torchtuples as tt # Some useful functions
 
 from pycox.models import PCHazard
 
-from survtrace.dataset import load_data
+from baselines.data_class import Data
 
-num_runs = 10
-datasets = ['metabric', 'support', ('seer', 'event_0'), ('seer', 'event_1')]
-# datasets = ['metabric', 'support']
+num_runs = 1
+# datasets = ['metabric', 'support', ('seer', 'event_0'), ('seer', 'event_1')]
+datasets = ['metabric', 'support']
 
 # define the setup parameters
 config_metabric = EasyDict({
@@ -61,6 +61,8 @@ for dataset_name in datasets:
         dataset_name, config.event_to_censor = dataset_name
 
     config = config_dic[dataset_name]
+    config.model = 'PCHazard'
+
 
     try:
         event_name = '-' + config.event_to_censor
@@ -75,31 +77,7 @@ for dataset_name in datasets:
     for i in range(num_runs):
 
         # load data
-        df, df_train, df_y_train, df_test, df_y_test, df_val, df_y_val = load_data(config)
-
-        # censor event
-        if config.data == 'seer':
-
-            censor_event = lambda df: df.drop(config.event_to_censor, axis=1).rename(columns={event_to_keep: 'event'})
-
-            event_to_keep = '0' if config.event_to_censor.split('_')[1] == '1' else '1'
-            event_to_keep = 'event_' + event_to_keep
-
-            df = censor_event(df)
-            df_y_train = censor_event(df_y_train)
-            df_y_val = censor_event(df_y_val)
-            df_y_test = censor_event(df_y_test)
-
-        # convet data to format necessary for pycox
-        x_train = np.array(df_train, dtype='float32')
-        x_val = np.array(df_val, dtype='float32')
-        x_test = np.array(df_test, dtype='float32')
-
-        y_df_to_tuple = lambda df: tuple([np.array(df['duration'], dtype='int64'), np.array(df['event'], dtype='float32'), np.array(df['proportion'], dtype='float32')])
-
-        y_train = y_df_to_tuple(df_y_train)
-        y_val = y_df_to_tuple(df_y_val)
-
+        data = Data(config)
 
         # define neural network
         hidden_size = config.hidden_size
@@ -126,7 +104,7 @@ for dataset_name in datasets:
 
         # train model
         train_time_start = time.time()
-        log = model.fit(x_train, y_train, config.batch_size, config.epochs, callbacks, val_data=tuple([x_val, y_val]))
+        log = model.fit(data.x_train, data.y_train, config.batch_size, config.epochs, callbacks, val_data=data.val_data)
         train_time_finish = time.time()
 
         # calcuate metrics
@@ -160,7 +138,7 @@ for dataset_name in datasets:
             
             return metric_dict
 
-        run = evaluator(df, df_train.index, model, (x_test, df_y_test), config=config)
+        run = evaluator(data.df, data.df_train.index, model, (data.x_test, data.df_y_test), config=config)
         run['train_time'] = train_time_finish - train_time_start
         run['epochs_trained'] = log.epoch
         run['time_per_epoch'] =  run['train_time'] / run['epochs_trained']

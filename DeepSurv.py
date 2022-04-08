@@ -11,9 +11,9 @@ import torchtuples as tt # Some useful functions
 
 from pycox.models import CoxPH
 
-from survtrace.dataset import load_data
+from baselines.data_class import Data
 
-num_runs = 10
+num_runs = 1
 datasets = ['metabric', 'support']
 
 # define the setup parameters
@@ -38,6 +38,7 @@ for dataset_name in datasets:
     print('Running DeepSurv on ' + dataset_name)
 
     config = config_metabric if dataset_name == 'metabric' else config_support
+    config.model = 'DeepSurv'
 
     # store each run in list
     runs_list = []
@@ -45,19 +46,7 @@ for dataset_name in datasets:
     for i in range(num_runs):
 
         # load data
-        df, df_train, df_y_train, df_test, df_y_test, df_val, df_y_val = load_data(config)
-
-
-        # convet data to format necessary for pycox
-        x_train = np.array(df_train, dtype='float32')
-        x_val = np.array(df_val, dtype='float32')
-        x_test = np.array(df_test, dtype='float32')
-
-        y_df_to_tuple = lambda df: tuple([np.array(df['duration'], dtype='int64'), np.array(df['event'], dtype='float32')])
-
-        y_train = y_df_to_tuple(df_y_train)
-        y_val = y_df_to_tuple(df_y_val)
-
+        data = Data(config)
 
         # define neural network
         out_features = 1
@@ -78,13 +67,14 @@ for dataset_name in datasets:
                 torch.nn.Linear(hidden_size, out_features)
                 )
 
+        # initialize model
         model = CoxPH(net, tt.optim.Adam)
         model.optimizer.set_lr(config.learning_rate)
         callbacks = [tt.callbacks.EarlyStopping(patience=20)]
 
         # train model
         train_time_start = time.time()
-        log = model.fit(x_train, y_train, config.batch_size, config.epochs, callbacks, verbose=True, val_data=tuple([x_val, y_val]), val_batch_size=config.batch_size)
+        log = model.fit(data.x_train, data.y_train, config.batch_size, config.epochs, callbacks, verbose=True, val_data=data.val_data, val_batch_size=config.batch_size)
         train_time_finish = time.time()
 
         # calcuate metrics
@@ -120,7 +110,7 @@ for dataset_name in datasets:
             
             return metric_dict
 
-        run = evaluator(df, df_train.index, model, (x_test, df_y_test), config=config)
+        run = evaluator(data.df, data.df_train.index, model, (data.x_test, data.df_y_test), config=config)
         run['train_time'] = train_time_finish - train_time_start
         run['epochs_trained'] = log.epoch
         run['time_per_epoch'] =  run['train_time'] / run['epochs_trained']
