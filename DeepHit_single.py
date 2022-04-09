@@ -8,11 +8,11 @@ from pycox.models import DeepHitSingle
 
 from baselines.data_class import Data
 from baselines.models import simple_dln
-from baselines.evaluator import Evaluator
+from baselines.evaluator import EvaluatorSingle
 from baselines.utils import export_results, update_run
 
 
-num_runs = 1
+num_runs = 10
 datasets = ['metabric', 'support']
 
 # define the setup parameters
@@ -39,7 +39,7 @@ for dataset_name in datasets:
     print('Running DeepHit on ' + dataset_name)
 
     config = config_metabric if dataset_name == 'metabric' else config_support
-    config.model = 'DeepSurv'
+    config.model = 'DeepHitSingle'
 
     # store each run in list
     runs_list = []
@@ -64,7 +64,7 @@ for dataset_name in datasets:
 
 
         # calcuate metrics
-        evaluator = Evaluator(data, model, config, offset=0)
+        evaluator = EvaluatorSingle(data, model, config, offset=0)
         run = evaluator.eval()
         run = update_run(run, train_time_start, train_time_finish, log.epoch)
 

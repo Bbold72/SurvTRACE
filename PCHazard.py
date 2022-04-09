@@ -8,13 +8,15 @@ from pycox.models import PCHazard
 
 from baselines.data_class import Data
 from baselines.models import simple_dln
-from baselines.evaluator import Evaluator
+from baselines.evaluator import EvaluatorSingle
 from baselines.utils import export_results, update_run
 
 
-num_runs = 1
+num_runs = 10
 # datasets = ['metabric', 'support', ('seer', 'event_0'), ('seer', 'event_1')]
-datasets = ['metabric', 'support']
+# datasets = ['metabric', 'support']
+datasets = [('seer', 'event_0'), ('seer', 'event_1')]
+
 
 # define the setup parameters
 config_metabric = EasyDict({
@@ -40,7 +42,7 @@ config_seer = EasyDict({
     'horizons': [.25, .5, .75],
     'batch_size': 1024,
     'learning_rate': 0.01,
-    'epochs': 100,
+    'epochs': 50,
     'hidden_size': 32,
     'dropout': 0.1,
     # event_0: Heart Disease
@@ -57,11 +59,12 @@ config_dic = {
 for dataset_name in datasets:
 
     if type(dataset_name) == tuple:
-        dataset_name, config.event_to_censor = dataset_name
+        dataset_name, event_to_censor = dataset_name
+        config = config_dic[dataset_name]
+        config.event_to_censor = event_to_censor
 
     config = config_dic[dataset_name]
     config.model = 'PCHazard'
-
 
     try:
         event_name = '-' + config.event_to_censor
@@ -92,7 +95,7 @@ for dataset_name in datasets:
         train_time_finish = time.time()
 
         # calcuate metrics
-        evaluator = Evaluator(data, model, config)
+        evaluator = EvaluatorSingle(data, model, config)
         run = evaluator.eval()
         run = update_run(run, train_time_start, train_time_finish, log.epoch)
 

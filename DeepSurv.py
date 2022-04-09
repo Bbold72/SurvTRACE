@@ -7,11 +7,11 @@ from pycox.models import CoxPH
 
 from baselines.data_class import Data
 from baselines.models import simple_dln
-from baselines.evaluator import Evaluator
+from baselines.evaluator import EvaluatorSingle
 from baselines.utils import export_results, update_run
 
 
-num_runs = 1
+num_runs = 10
 datasets = ['metabric', 'support']
 
 # define the setup parameters
@@ -63,7 +63,7 @@ for dataset_name in datasets:
         train_time_finish = time.time()
 
         # calcuate metrics
-        evaluator = Evaluator(data, model, config, offset=0)
+        evaluator = EvaluatorSingle(data, model, config, offset=0)
         run = evaluator.eval()
         run = update_run(run, train_time_start, train_time_finish, log.epoch)
 
