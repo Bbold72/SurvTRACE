@@ -12,6 +12,7 @@ from pycox.models import PCHazard
 
 from baselines.data_class import Data
 from baselines.models import simple_dln
+from baselines.evaluator import Evaluator
 
 
 num_runs = 1
@@ -26,8 +27,7 @@ config_metabric = EasyDict({
     'learning_rate': 0.01,
     'epochs': 50,
     'hidden_size': 32,
-    'dropout': 0.1,
-    'val_batch_size': None 
+    'dropout': 0.1
 })
 config_support = EasyDict({
     'data': 'support',
@@ -36,8 +36,7 @@ config_support = EasyDict({
     'learning_rate': 0.01,
     'epochs': 50,
     'hidden_size': 32,
-    'dropout': 0.1,
-    'val_batch_size': None
+    'dropout': 0.1
 })
 config_seer = EasyDict({
     'data': 'seer',
@@ -47,7 +46,6 @@ config_seer = EasyDict({
     'epochs': 100,
     'hidden_size': 32,
     'dropout': 0.1,
-    'val_batch_size': 10000,
     # event_0: Heart Disease
     # event_1: Breast Cancer
     'event_to_censor': 'event_0'
@@ -97,37 +95,8 @@ for dataset_name in datasets:
         train_time_finish = time.time()
 
         # calcuate metrics
-        def evaluator(df, train_index, model, test_set, config):
-            df_train_all = df.loc[train_index]
-            get_target = lambda df: (df['duration'].values, df['event'].values)
-            durations_train, events_train = get_target(df_train_all)
-            et_train = np.array([(events_train[i], durations_train[i]) for i in range(len(events_train))],
-                            dtype = [('e', bool), ('t', float)])
-            times = config['duration_index'][1:-1]
-            horizons = config['horizons']
-
-            df_test, df_y_test = test_set
-            surv = model.predict_surv_df(df_test, batch_size=config.val_batch_size)
-            risk = np.array((1 - surv).transpose())
-            
-            durations_test, events_test = get_target(df_y_test)
-            et_test = np.array([(events_test[i], durations_test[i]) for i in range(len(events_test))],
-                        dtype = [('e', bool), ('t', float)])
-            metric_dict = defaultdict(list)
-            cis = []
-            for i, _ in enumerate(times):
-                cis.append(
-                    concordance_index_ipcw(et_train, et_test, estimate=risk[:, i+1], tau=times[i])[0]
-                    )
-                metric_dict[f'{horizons[i]}_ipcw'] = cis[i]
-
-            for horizon in enumerate(horizons):
-                print(f"For {horizon[1]} quantile,")
-                print("TD Concordance Index - IPCW:", cis[horizon[0]])
-            
-            return metric_dict
-
-        run = evaluator(data.df, data.df_train.index, model, (data.x_test, data.df_y_test), config=config)
+        evaluator = Evaluator(data, model, config)
+        run = evaluator.eval()
         run['train_time'] = train_time_finish - train_time_start
         run['epochs_trained'] = log.epoch
         run['time_per_epoch'] =  run['train_time'] / run['epochs_trained']
