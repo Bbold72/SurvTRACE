@@ -2,7 +2,13 @@ from pathlib import Path
 import pickle
 
 def export_results(results_list, config):
-    file_name = config['model'] + '_' + config['data'] + '.pickle'
+
+    if config.data == 'seer' and config.model == 'PCHazard':
+        event_name = '_' + config.event_to_keep
+    else:
+        event_name = ''
+
+    file_name = config['model'] + '_' + config['data'] + f'{event_name}.pickle'
     with open(Path('results', file_name), 'wb') as f:
         pickle.dump(results_list, f)
 

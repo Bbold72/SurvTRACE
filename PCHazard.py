@@ -13,9 +13,9 @@ from baselines.utils import export_results, update_run
 
 
 num_runs = 10
-# datasets = ['metabric', 'support', ('seer', 'event_0'), ('seer', 'event_1')]
+datasets = ['metabric', 'support', ('seer', 'event_0'), ('seer', 'event_1')]
 # datasets = ['metabric', 'support']
-datasets = [('seer', 'event_0'), ('seer', 'event_1')]
+# datasets = [('seer', 'event_0'), ('seer', 'event_1')]
 
 
 # define the setup parameters
@@ -62,6 +62,8 @@ for dataset_name in datasets:
         dataset_name, event_to_censor = dataset_name
         config = config_dic[dataset_name]
         config.event_to_censor = event_to_censor
+        event_to_keep = '0' if config.event_to_censor.split('_')[1] == '1' else '1'
+        config.event_to_keep = 'event_' + event_to_keep
 
     config = config_dic[dataset_name]
     config.model = 'PCHazard'
