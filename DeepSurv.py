@@ -1,9 +1,4 @@
 from easydict import EasyDict
-from collections import defaultdict
-import numpy as np
-from pathlib import Path
-import pickle
-from sksurv.metrics import concordance_index_ipcw
 import time
 
 import torchtuples as tt # Some useful functions
@@ -13,6 +8,7 @@ from pycox.models import CoxPH
 from baselines.data_class import Data
 from baselines.models import simple_dln
 from baselines.evaluator import Evaluator
+from baselines.utils import export_results, update_run
 
 
 num_runs = 1
@@ -69,13 +65,9 @@ for dataset_name in datasets:
         # calcuate metrics
         evaluator = Evaluator(data, model, config, offset=0)
         run = evaluator.eval()
-        run['train_time'] = train_time_finish - train_time_start
-        run['epochs_trained'] = log.epoch
-        run['time_per_epoch'] =  run['train_time'] / run['epochs_trained']
+        run = update_run(run, train_time_start, train_time_finish, log.epoch)
 
         runs_list.append(run)
 
-    file_name = 'DeepSurv' + '_' + config['data'] + '.pickle'
-    with open(Path('results', file_name), 'wb') as f:
-        pickle.dump(runs_list, f)
+    export_results(runs_list, config)
 
