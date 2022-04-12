@@ -117,16 +117,12 @@ def main():
     df_single, df_single_comp = subset_computational_requirements(df_single)
     df_competing, df_competing_comp = subset_computational_requirements(df_competing)
 
-    
 
     format_df(df_single)
 
-
-
     df_competing = competing_dataset(df_competing)
-
-
     format_df(df_competing)
+
 
     compare_df = compare_author_results(df)
     compare_df_single, compare_df_competing = subset_events(compare_df)
@@ -137,12 +133,18 @@ def main():
     compare_df_competing = competing_dataset(compare_df_competing)
     format_df(compare_df_competing, True)
 
+    print(df_single_comp)
+    format_df(df_single_comp)
+    format_df(competing_dataset(df_competing_comp))
+
+
+
     # some rando stats
     N = len(compare_df)
 
     def within_percent(percent):
         num_within_percent = sum(compare_df['mean'].abs() <= percent)
-        print(f"Percent of Results within {percent}% of Authots':", round((num_within_percent/N)*100, 0))
+        print(f"Percent of Results within {percent}% of Authors':", round((num_within_percent/N)*100, 0))
     
     within_percent(3)
     within_percent(1)
