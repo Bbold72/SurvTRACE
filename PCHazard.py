@@ -42,11 +42,11 @@ config_seer = EasyDict({
     'horizons': [.25, .5, .75],
     'batch_size': 1024,
     'learning_rate': 0.01,
-    'epochs': 50,
+    'epochs': 5,
     'hidden_size': 32,
     'dropout': 0.1,
-    # event_0: Heart Disease
-    # event_1: Breast Cancer
+    # event_0: Breast Cancer 
+    # event_1: Heart Disease
     'event_to_censor': 'event_0'
 })
 config_dic = {
@@ -69,7 +69,7 @@ for dataset_name in datasets:
     config.model = 'PCHazard'
 
     try:
-        event_name = '-' + config.event_to_censor
+        event_name = '-' + config.event_to_keep
     except AttributeError:
         event_name = ''
 
