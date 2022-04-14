@@ -40,14 +40,13 @@ for i in range(num_runs):
                                 cycle_eta_multiplier=0.8)
     callbacks = [tt.callbacks.EarlyStoppingCycle(patience=10)]
 
-    train_time_start = time.time()
     model = DeepHit(net, optimizer, alpha=0.2, sigma=0.1,
                     duration_index=config.duration_index)
-    train_time_finish = time.time()
 
     # train model
+    train_time_start = time.time()
     log = model.fit(data.x_train, data.y_train, config.batch_size, config.epochs, callbacks, val_data=tuple([data.x_val, data.y_val]))
-
+    train_time_finish = time.time()
 
 
     # evaluator = Evaluator(data.df, data.df_train.index)
