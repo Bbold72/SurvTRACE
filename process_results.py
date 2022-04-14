@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+from pandas.api.types import CategoricalDtype
 from pathlib import Path
 import pickle
 import os
@@ -63,7 +64,7 @@ def format_df(df, is_compare_df=False):
     print(df.to_latex())
 
 
-def subset_events(df):
+def subset_datasets(df):
     mask = df['dataset'] == 'seer'
     return df[~mask], df[mask]
 
@@ -112,7 +113,7 @@ def main():
 
 
     # separate dataframe into single and competing events
-    df_single, df_competing = subset_events(df)
+    df_single, df_competing = subset_datasets(df)
 
     df_single, df_single_comp = subset_computational_requirements(df_single)
     df_competing, df_competing_comp = subset_computational_requirements(df_competing)
@@ -125,7 +126,7 @@ def main():
 
 
     compare_df = compare_author_results(df)
-    compare_df_single, compare_df_competing = subset_events(compare_df)
+    compare_df_single, compare_df_competing = subset_datasets(compare_df)
     format_df(compare_df_single, True)
 
 
@@ -133,9 +134,20 @@ def main():
     compare_df_competing = competing_dataset(compare_df_competing)
     format_df(compare_df_competing, True)
 
-    print(df_single_comp)
-    format_df(df_single_comp)
-    format_df(competing_dataset(df_competing_comp))
+
+    def order_comp_horizon(df):
+        cat = CategoricalDtype(categories=["train_time", "epochs_trained", "time_per_epoch"], ordered=True)
+        df['horizon'] = df['horizon'].astype(cat)
+        return df
+
+    format_df(order_comp_horizon(df_single_comp))
+
+
+    df_competing_comp_censoring, df_competing_comp = subset_datasets(competing_dataset(df_competing_comp))
+    
+    format_df(df_competing_comp)
+    format_df(df_competing_comp_censoring)
+
 
 
 
