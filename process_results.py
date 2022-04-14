@@ -27,8 +27,6 @@ def aggregate_raw_data():
         agg_df = agg_df.join(agg_df['file_name'].str.split('_', expand=True).rename(
             columns={0:'model', 1:'dataset', 2: 'event', 3: 'event_num'}
         ))
-        if file_name == 'PCHazard_seer_event_0':
-            print(agg_df)
 
         df_list.append(agg_df)
 
@@ -83,6 +81,11 @@ def competing_dataset(df):
                                         )
     return df
 
+def order_comp_horizon(df):
+    cat = CategoricalDtype(categories=["train_time", "epochs_trained", "time_per_epoch"], ordered=True)
+    df['horizon'] = df['horizon'].astype(cat)
+    return df
+
 
 def compare_author_results(df):
     df_authors = pd.read_csv('author_results.csv')
@@ -135,18 +138,14 @@ def main():
     format_df(compare_df_competing, True)
 
 
-    def order_comp_horizon(df):
-        cat = CategoricalDtype(categories=["train_time", "epochs_trained", "time_per_epoch"], ordered=True)
-        df['horizon'] = df['horizon'].astype(cat)
-        return df
 
     format_df(order_comp_horizon(df_single_comp))
 
 
     df_competing_comp_censoring, df_competing_comp = subset_datasets(competing_dataset(df_competing_comp))
     
-    format_df(df_competing_comp)
-    format_df(df_competing_comp_censoring)
+    format_df(order_comp_horizon(df_competing_comp))
+    format_df(order_comp_horizon(df_competing_comp_censoring))
 
 
 
