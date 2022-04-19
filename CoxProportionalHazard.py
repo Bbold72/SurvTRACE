@@ -13,7 +13,7 @@ import numpy as np
 from sksurv.metrics import concordance_index_ipcw
 from collections import defaultdict
 
-num_runs = 1
+num_runs = 10
 datasets = ['metabric', 'support']
 # datasets = ['support']
 
@@ -56,8 +56,8 @@ for dataset_name in datasets:
         # calcuate metrics
         evaluator = EvaluatorCPH(data, model, config)
         run = evaluator.eval()
-    #     run = update_run(run, train_time_start, train_time_finish, log.epoch)
-    #     runs_list.append(run)
+        run = update_run(run, train_time_start, train_time_finish, config.epochs)
+        runs_list.append(run)
 
-    # export_results(runs_list, config)
+    export_results(runs_list, config)
 

@@ -42,7 +42,7 @@ config_seer = EasyDict({
     'horizons': [.25, .5, .75],
     'batch_size': 1024,
     'learning_rate': 0.01,
-    'epochs': 5,
+    'epochs': 50,
     'hidden_size': 32,
     'dropout': 0.1,
     # event_0: Breast Cancer 
