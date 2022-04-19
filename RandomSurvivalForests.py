@@ -1,11 +1,10 @@
 from easydict import EasyDict
 import time
 
-
-from sksurv.linear_model import CoxPHSurvivalAnalysis
+from sksurv.ensemble import RandomSurvivalForest
 
 from baselines.data_class import Data
-from baselines.evaluator import EvaluatorCPH
+from baselines.evaluator import EvaluatorRSF
 from baselines.utils import export_results, update_run, df_to_event_time_array
 
 
@@ -17,17 +16,17 @@ datasets = ['metabric', 'support']
 config_metabric = EasyDict({
     'data': 'metabric',
     'horizons': [.25, .5, .75],
-    'epochs': 200
+    'epochs': 100
 })
 config_support = EasyDict({
     'data': 'support',
     'horizons': [.25, .5, .75],
-    'epochs': 200
+    'epochs': 100
 })
 
 for dataset_name in datasets:
     config = config_metabric if dataset_name == 'metabric' else config_support
-    config.model = 'CPH'
+    config.model = 'RSF'
     print(f'Running {config.model} on {dataset_name}')
 
 
@@ -41,15 +40,15 @@ for dataset_name in datasets:
         y_et_train = df_to_event_time_array(data.df_y_train)
         
         # initialize model
-        CPH = CoxPHSurvivalAnalysis(n_iter=config.epochs)
+        RSF = RandomSurvivalForest(n_estimators=config.epochs)
 
         # train model
         train_time_start = time.time()
-        model = CPH.fit(data.x_train, y_et_train)
+        model = RSF.fit(data.x_train, y_et_train)
         train_time_finish = time.time()        
 
         # calcuate metrics
-        evaluator = EvaluatorCPH(data, model, config)
+        evaluator = EvaluatorRSF(data, model, config)
         run = evaluator.eval()
         run = update_run(run, train_time_start, train_time_finish, config.epochs)
         runs_list.append(run)
