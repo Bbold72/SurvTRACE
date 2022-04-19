@@ -2,6 +2,7 @@ import abc
 from collections import defaultdict
 import numpy as np
 from sksurv.metrics import concordance_index_ipcw
+from baselines.utils import df_to_event_time_array
 
 class EvaluatorBase:
 
@@ -20,11 +21,7 @@ class EvaluatorBase:
     
     def _make_event_time_array(self, event_var_name):
         def helper(df):
-            durations, events = (df['duration'].values, df[event_var_name].values)
-
-            event_time_array = np.array([(events[i], durations[i]) for i in range(len(events))],
-                            dtype = [('e', bool), ('t', float)])
-            return event_time_array
+            return df_to_event_time_array(df, event_var_name=event_var_name)
         
         return helper(self.df_train_all), helper(self.df_y_test)
 
