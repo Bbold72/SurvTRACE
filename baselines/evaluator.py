@@ -17,18 +17,12 @@ class EvaluatorBase:
         self.times = config['duration_index'][1:-1]
         self.horizons = config['horizons']
         self.metric_dict = defaultdict(list)
-        self.compute_baseline_hazards = True if config.model == 'DeepSurv' else False
     
     def _make_event_time_array(self, event_var_name):
         def helper(df):
             return df_to_event_time_array(df, event_var_name=event_var_name)
         
         return helper(self.df_train_all), helper(self.df_y_test)
-
-    def calc_survival_function(self):
-        if self.compute_baseline_hazards:
-            _ = self.model.compute_baseline_hazards()
-        return self.model.predict_surv(self.x_test)
 
 
     def _calc_concordance_index_ipcw_base(self, risk, event_var_name, event_dict_label='', event_print_label=''):
@@ -47,6 +41,10 @@ class EvaluatorBase:
             print("TD Concordance Index - IPCW:", cis[horizon[0]])
     
     @abc.abstractclassmethod
+    def calc_survival_function(self):
+        pass
+
+    @abc.abstractclassmethod
     def _calc_risk(self):
         pass
 
@@ -64,6 +62,12 @@ class EvaluatorSingle(EvaluatorBase):
 
     def __init__(self, data, model, config, offset=1):
         super().__init__(data, model, config, offset)
+        self.compute_baseline_hazards = True if config.model == 'DeepSurv' else False
+
+    def calc_survival_function(self):
+        if self.compute_baseline_hazards:
+            _ = self.model.compute_baseline_hazards()
+        return self.model.predict_surv(self.x_test)
 
     def _calc_risk(self):
         surv = self.calc_survival_function()
@@ -83,6 +87,9 @@ class EvaluatorCompeting(EvaluatorBase):
     def __init__(self, data, model, config, offset=0):
         super().__init__(data, model, config, offset)
         self.num_event = config.num_event
+
+    def calc_survival_function(self):
+        return self.model.predict_surv(self.x_test)
 
     def predict_cif(self, event_idx):
         return self.model.predict_cif(self.x_test)[event_idx, :, :].transpose()
