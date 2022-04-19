@@ -108,3 +108,26 @@ class EvaluatorCompeting(EvaluatorBase):
             event_var_name = f'event_{event_idx}'
             self.calc_concordance_index_ipcw(event_idx, event_var_name)
         return self.metric_dict
+
+
+class EvaluatorCPH(EvaluatorBase):
+
+    def __init__(self, data, model, config, offset=0):
+        super().__init__(data, model, config, offset)
+
+    def calc_survival_function(self):
+        surv = self.model.predict_survival_function(self.x_test)
+        surv = np.array([f.y for f in surv])
+        return surv
+
+    def _calc_risk(self):
+        surv = self.calc_survival_function()
+        return 1 - surv
+
+    def calc_concordance_index_ipcw(self, event_var_name='event'):
+        risk = self._calc_risk()
+        self._calc_concordance_index_ipcw_base(risk, event_var_name)
+    
+    def eval(self):
+        self.calc_concordance_index_ipcw()
+        return self.metric_dict
