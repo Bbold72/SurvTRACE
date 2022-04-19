@@ -44,19 +44,18 @@ class EvaluatorBase:
     def calc_survival_function(self):
         pass
 
-    @abc.abstractclassmethod
     def _calc_risk(self):
-        pass
+        surv = self.calc_survival_function()
+        return 1 - surv
 
-    @abc.abstractclassmethod
-    def calc_concordance_index_ipcw(self):
-        pass
+    def calc_concordance_index_ipcw(self, event_var_name='event'):
+        risk = self._calc_risk()
+        self._calc_concordance_index_ipcw_base(risk, event_var_name)
 
-    @abc.abstractclassmethod
     def eval(self):
-        pass
+        self.calc_concordance_index_ipcw()
+        return self.metric_dict
         
-
 
 class EvaluatorSingle(EvaluatorBase):
 
@@ -68,18 +67,6 @@ class EvaluatorSingle(EvaluatorBase):
         if self.compute_baseline_hazards:
             _ = self.model.compute_baseline_hazards()
         return self.model.predict_surv(self.x_test)
-
-    def _calc_risk(self):
-        surv = self.calc_survival_function()
-        return 1 - surv
-
-    def calc_concordance_index_ipcw(self, event_var_name='event'):
-        risk = self._calc_risk()
-        self._calc_concordance_index_ipcw_base(risk, event_var_name)
-    
-    def eval(self):
-        self.calc_concordance_index_ipcw()
-        return self.metric_dict
 
 
 class EvaluatorCompeting(EvaluatorBase):
@@ -120,18 +107,6 @@ class EvaluatorCPH(EvaluatorBase):
         surv = np.array([f.y for f in surv])
         return surv
 
-    def _calc_risk(self):
-        surv = self.calc_survival_function()
-        return 1 - surv
-
-    def calc_concordance_index_ipcw(self, event_var_name='event'):
-        risk = self._calc_risk()
-        self._calc_concordance_index_ipcw_base(risk, event_var_name)
-    
-    def eval(self):
-        self.calc_concordance_index_ipcw()
-        return self.metric_dict
-
 
 class EvaluatorRSF(EvaluatorBase):
 
@@ -141,14 +116,6 @@ class EvaluatorRSF(EvaluatorBase):
     def calc_survival_function(self):
         return self.model.predict_survival_function(self.x_test)
 
-    def _calc_risk(self):
-        surv = self.calc_survival_function()
-        return 1 - surv
 
-    def calc_concordance_index_ipcw(self, event_var_name='event'):
-        risk = self._calc_risk()
-        self._calc_concordance_index_ipcw_base(risk, event_var_name)
     
-    def eval(self):
-        self.calc_concordance_index_ipcw()
-        return self.metric_dict
+
