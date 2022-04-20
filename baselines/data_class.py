@@ -3,18 +3,14 @@ from survtrace.dataset import load_data
 
 class Data:
 
-    def __init__(self, config):
+    def __init__(self, config, censor_event=False):
 
         # load data
-        self.df, self.df_train, self.df_y_train, self.df_test, self.df_y_test, self.df_val, self.df_y_val = load_data(config)
+        self.df, self.df_train, self.df_y_train, self.df_test, self.df_y_test, self.df_val, self.df_y_val = load_data(config, censor_event)
 
         # censor event
-        if config.data == 'seer' and config.model == 'PCHazard':
-
-            censor_event = lambda df: df.drop(config.event_to_censor, axis=1).rename(columns={event_to_keep: 'event'})
-
-            event_to_keep = '0' if config.event_to_censor.split('_')[1] == '1' else '1'
-            event_to_keep = 'event_' + event_to_keep
+        if censor_event:
+            censor_event = lambda df: df.drop(config.event_to_censor, axis=1).rename(columns={config.event_to_keep: 'event'})
 
             self.df = censor_event(self.df)
             self.df_y_train = censor_event(self.df_y_train)

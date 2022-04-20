@@ -13,6 +13,7 @@ from baselines.utils import export_results, update_run
 
 
 num_runs = 10
+
 datasets = ['metabric', 'support', ('seer', 'event_0'), ('seer', 'event_1')]
 # datasets = ['metabric', 'support']
 # datasets = [('seer', 'event_0'), ('seer', 'event_1')]
@@ -60,10 +61,12 @@ for dataset_name in datasets:
 
     if type(dataset_name) == tuple:
         dataset_name, event_to_censor = dataset_name
-        config = config_dic[dataset_name]
-        config.event_to_censor = event_to_censor
-        event_to_keep = '0' if config.event_to_censor.split('_')[1] == '1' else '1'
-        config.event_to_keep = 'event_' + event_to_keep
+        config_seer.event_to_censor = event_to_censor
+        event_to_keep = '0' if config_seer.event_to_censor == 'event_1' else '1'
+        config_seer.event_to_keep = 'event_' + event_to_keep
+        censor_event = True
+    else:
+        censor_event = False
 
     config = config_dic[dataset_name]
     config.model = 'PCHazard'
@@ -74,14 +77,13 @@ for dataset_name in datasets:
         event_name = ''
 
     print('Running PC Hazard' + event_name + ' on ' + dataset_name)
-
     # store each run in list
     runs_list = []
 
     for i in range(num_runs):
 
         # load data
-        data = Data(config)
+        data = Data(config, censor_event)
 
         # define neural network
         net = simple_dln(config)

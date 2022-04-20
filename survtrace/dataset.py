@@ -6,7 +6,7 @@ import pdb
 
 from .utils import LabelTransform
 
-def load_data(config):
+def load_data(config, censor_event=False):
     '''load data, return updated configuration.
     '''
     data = config['data']
@@ -94,8 +94,13 @@ def load_data(config):
     elif data == "seer":
         PATH_DATA = "./data/seer_processed.csv"
         df = pd.read_csv(PATH_DATA)
-        times = np.quantile(df["duration"][df["event_breast"]==1.0], horizons).tolist()
 
+        if censor_event:
+            event_var_name = 'event_breast' if config.event_to_keep == 'event_0' else 'event_heart'
+        else:
+            event_var_name = 'event_breast'
+
+        times = np.quantile(df["duration"][df[event_var_name]==1.0], horizons).tolist()
         event_list = ["event_breast", "event_heart"]
 
         cols_categorical = ["Sex", "Year of diagnosis", "Race recode (W, B, AI, API)", "Histologic Type ICD-O-3",
