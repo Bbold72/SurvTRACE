@@ -61,7 +61,7 @@ class Data:
             _, self.val_outcomes = self.y_val
             self.val_times = np.array(self.df.loc[self.df_val.index]['duration'])
 
-        if config.model == 'CPH':
+        if config.model == 'CPH' or config.model == 'RSF':
             self.y_et_train = df_to_event_time_array(self.df_y_train)
 
 
