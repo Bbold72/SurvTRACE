@@ -1,4 +1,5 @@
 import abc
+from cgi import test
 from collections import defaultdict
 import numpy as np
 from sksurv.metrics import concordance_index_ipcw
@@ -6,13 +7,20 @@ from baselines.utils import df_to_event_time_array
 
 class EvaluatorBase:
 
-    def __init__(self, data, model, config, offset):
+    def __init__(self, data, model, config, offset, test_set=True):
 
         self.model = model
         self.offset = offset
-        self.x_test = data.x_test
-        self.df_y_test = data.df_y_test
         self.df_train_all = data.df.loc[data.df_train.index]
+
+        if test_set:
+            self.x_eval = data.x_test
+            self.df_y_eval = data.df_y_test
+        # use validation set
+        else:
+            self.x_eval = data.x_val
+            self.df_y_eval = data.df_y_val
+
 
         self.times = config['duration_index'][1:-1]
         self.horizons = config['horizons']
@@ -22,7 +30,7 @@ class EvaluatorBase:
         def helper(df):
             return df_to_event_time_array(df, event_var_name=event_var_name)
         
-        return helper(self.df_train_all), helper(self.df_y_test)
+        return helper(self.df_train_all), helper(self.df_y_eval)
 
 
     def _calc_concordance_index_ipcw_base(self, risk, event_var_name, event_dict_label='', event_print_label=''):
@@ -66,7 +74,7 @@ class EvaluatorSingle(EvaluatorBase):
     def calc_survival_function(self):
         if self.compute_baseline_hazards:
             _ = self.model.compute_baseline_hazards()
-        return self.model.predict_surv(self.x_test)
+        return self.model.predict_surv(self.x_eval)
 
 
 class EvaluatorCompeting(EvaluatorBase):
@@ -76,10 +84,10 @@ class EvaluatorCompeting(EvaluatorBase):
         self.num_event = config.num_event
 
     def calc_survival_function(self):
-        return self.model.predict_surv(self.x_test)
+        return self.model.predict_surv(self.x_eval)
 
     def predict_cif(self, event_idx):
-        return self.model.predict_cif(self.x_test)[event_idx, :, :].transpose()
+        return self.model.predict_cif(self.x_eval)[event_idx, :, :].transpose()
 
     def _calc_risk(self, event_idx):
         return self.predict_cif(event_idx)
@@ -103,7 +111,7 @@ class EvaluatorCPH(EvaluatorBase):
         super().__init__(data, model, config, offset)
 
     def calc_survival_function(self):
-        surv = self.model.predict_survival_function(self.x_test)
+        surv = self.model.predict_survival_function(self.x_eval)
         surv = np.array([f.y for f in surv])
         return surv
 
@@ -114,8 +122,15 @@ class EvaluatorRSF(EvaluatorBase):
         super().__init__(data, model, config, offset)
 
     def calc_survival_function(self):
-        return self.model.predict_survival_function(self.x_test)
+        return self.model.predict_survival_function(self.x_eval)
 
 
     
 
+class EvaluatorSingleDSM(EvaluatorBase):
+
+    def __init__(self, data, model, config, offset=1, test_set=True):
+        super().__init__(data, model, config, offset, test_set)
+
+    def calc_survival_function(self):
+        return self.model.predict_survival(self.x_eval.astype('float64'), self.times.tolist())
