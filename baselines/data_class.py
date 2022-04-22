@@ -52,3 +52,10 @@ class Data:
         # package in tuple to pass to pycox models
         self.val_data = tuple([self.x_val, self.y_val])
 
+        # process data for DSM
+        if config.model == 'DSM':
+            _, self.train_outcomes = self.y_train
+            self.train_times = np.array(self.df.loc[self.df_train.index]['duration'])
+            _, self.val_outcomes = self.y_val
+            self.val_times = np.array(self.df.loc[self.df_val.index]['duration'])
+
