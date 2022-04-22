@@ -4,7 +4,7 @@ import pickle
 
 def export_results(results_list, config):
 
-    if config.data == 'seer' and config.model == 'PCHazard':
+    if config.data == 'seer' and config.model in ['PCHazard', 'CPH', 'RSF']:
         event_name = '_' + config.event_to_keep
     else:
         event_name = ''
