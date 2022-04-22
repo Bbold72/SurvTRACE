@@ -3,6 +3,8 @@ checkpoints/*
 data/checkpoints*
 tutorials/*
 notebooks/*
+auton_survival/*
+auton-survival/*
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

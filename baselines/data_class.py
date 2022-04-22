@@ -18,7 +18,7 @@ class Data:
             self.df_y_test = censor_event(self.df_y_test)
 
         # competing events
-        if config.model == 'DeepHitCompeting':
+        if (config.model == 'DeepHitCompeting') or (config.model == 'DSM' and config.data == 'seer'):
             # make event variable for pycox model
             # 0: right censored
             # 1: Heart Disease (event_0)

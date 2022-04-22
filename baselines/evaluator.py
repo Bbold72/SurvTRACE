@@ -125,12 +125,35 @@ class EvaluatorRSF(EvaluatorBase):
         return self.model.predict_survival_function(self.x_eval)
 
 
-    
-
 class EvaluatorSingleDSM(EvaluatorBase):
 
-    def __init__(self, data, model, config, offset=1, test_set=True):
-        super().__init__(data, model, config, offset, test_set)
+    def __init__(self, data, model, config, test_set=True):
+        super().__init__(data, model, config, test_set=test_set, offset=0)
 
     def calc_survival_function(self):
         return self.model.predict_survival(self.x_eval.astype('float64'), self.times.tolist())
+
+
+class EvaluatorCompetingDSM(EvaluatorBase):
+
+    def __init__(self, data, model, config, test_set=True):
+        super().__init__(data, model, config, test_set=test_set, offset=0)
+        self.num_event = config.num_event
+
+    def calc_survival_function(self, event_idx):
+        return self.model.predict_survival(self.x_eval.astype('float64'), self.times.tolist(), risk=event_idx+1)
+
+    def _calc_risk(self, event_idx):
+        return 1 - self.calc_survival_function(event_idx)
+
+    def calc_concordance_index_ipcw(self, event_idx, event_var_name):
+        risk = self._calc_risk(event_idx)
+        event_dict_label = f'_{event_idx}'
+        event_print_label = f'Event: {event_idx} ' 
+        self._calc_concordance_index_ipcw_base(risk, event_var_name, event_dict_label, event_print_label)
+    
+    def eval(self):
+        for event_idx in range(self.num_event):
+            event_var_name = f'event_{event_idx}'
+            self.calc_concordance_index_ipcw(event_idx, event_var_name)
+        return self.metric_dict
