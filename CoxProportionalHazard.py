@@ -71,14 +71,13 @@ for dataset_name in datasets:
 
         # load data
         data = Data(config, censor_event)
-        y_et_train = df_to_event_time_array(data.df_y_train)
 
         # initialize model
         CPH = CoxPHSurvivalAnalysis(n_iter=config.epochs, verbose=1)
 
         # train model
         train_time_start = time.time()
-        model = CPH.fit(data.x_train, y_et_train)
+        model = CPH.fit(data.x_train, data.y_et_train)
         train_time_finish = time.time()        
 
         # calcuate metrics

@@ -1,6 +1,8 @@
 import numpy as np
 from survtrace.dataset import load_data
 
+from baselines.utils import df_to_event_time_array
+
 class Data:
 
     def __init__(self, config, censor_event=False):
@@ -58,4 +60,8 @@ class Data:
             self.train_times = np.array(self.df.loc[self.df_train.index]['duration'])
             _, self.val_outcomes = self.y_val
             self.val_times = np.array(self.df.loc[self.df_val.index]['duration'])
+
+        if config.model == 'CPH':
+            self.y_et_train = df_to_event_time_array(self.df_y_train)
+
 
