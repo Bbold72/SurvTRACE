@@ -6,7 +6,7 @@ from sksurv.linear_model import CoxPHSurvivalAnalysis
 
 from baselines.data_class import Data
 from baselines.evaluator import EvaluatorCPH
-from baselines.utils import export_results, update_run, df_to_event_time_array
+from baselines.utils import export_results, update_run
 
 
 num_runs = 10
