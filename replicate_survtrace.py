@@ -10,11 +10,12 @@ from survtrace.model import SurvTraceMulti
 from survtrace.train_utils import Trainer
 from survtrace.config import STConfig
 
+from survtrace.losses import NLLLogistiHazardLoss
 
 
-
-num_runs = 10
+num_runs = 1
 datasets = ['metabric', 'support', 'seer']
+# datasets = ['seer']
 
 data_hyperparams = {
             'metabric': {
@@ -36,34 +37,35 @@ data_hyperparams = {
                 'weight_decay': 0,
                 'learning_rate': 1e-4,
                 'epochs': 1,
-                'variants': ['woMTL'],
+                'variants': ['woMTL', 'woIPS-woMTL'],
                 }
             }
 
 for dataset_name in datasets:
-    print('Running SurvTrace on ' + dataset_name)
-
-    # define the setup parameters
-    STConfig['data'] = dataset_name
-    if dataset_name == 'seer':
-        STConfig['num_hidden_layers'] = 2
-        STConfig['hidden_size'] = 16
-        STConfig['intermediate_size'] = 64
-        STConfig['num_attention_heads'] = 2
-        STConfig['initializer_range'] = .02
-        STConfig['early_stop_patience'] = 5
-
-
-    # store each run in list
-    runs_list = []
-
     hparams = data_hyperparams[dataset_name]
 
-    if dataset_name == 'seer':
-        hparams['val_batch_size'] = 10000
-
     for variant in hparams['variants']:
+        if variant != '':
+            variant_name = '-' + variant
+        else:
+            variant_name = variant
+        print(f'Running SurvTrace{variant_name} on {dataset_name}')
 
+        # define the setup parameters
+        STConfig['data'] = dataset_name
+        if dataset_name == 'seer':
+            STConfig['num_hidden_layers'] = 2
+            STConfig['hidden_size'] = 16
+            STConfig['intermediate_size'] = 64
+            STConfig['num_attention_heads'] = 2
+            STConfig['initializer_range'] = .02
+            STConfig['early_stop_patience'] = 5
+
+            hparams['val_batch_size'] = 10000
+
+
+        # store each run in list
+        runs_list = []
         for i in range(num_runs):
 
             # load data - also splits data
@@ -74,12 +76,13 @@ for dataset_name in datasets:
             model = SurvTraceMulti(STConfig) if dataset_name == 'seer' else SurvTraceSingle(STConfig)
 
             # initialize a trainer
-            trainer = Trainer(model)
+            if variant == 'woIPS-woMTL':
+                trainer = Trainer(model, metrics=[NLLLogistiHazardLoss(),])
+            else:
+                trainer = Trainer(model)
 
             train_time_start = time.time()
-
             train_loss, val_loss = trainer.fit((df_train, df_y_train), (df_val, df_y_val), **hparams,)
-
             train_time_finish = time.time()
 
             # evaluate model
@@ -89,9 +92,7 @@ for dataset_name in datasets:
                 
             runs_list.append(run)
 
-        if variant != '':
-            variant = '-' + variant
-        file_name = f'survtrace{variant}_{STConfig["data"]}.pickle'
+        file_name = f'survtrace{variant_name}_{STConfig["data"]}.pickle'
         with open(Path('results', file_name), 'wb') as f:
             pickle.dump(runs_list, f)
     

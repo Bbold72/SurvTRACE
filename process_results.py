@@ -49,6 +49,7 @@ def format_df(df, is_compare_df=False):
     mask = df['horizon'].str.contains('brier', regex=False)
     df = (df[~mask].replace({'model': {'survtrace': 'SurvTRACE',
                                         'survtrace-woMTL': 'SurvTRACE w/o MTL',
+                                        'survtrace-woIPS-woMTL': 'SurvTRACE w/o IPS & MTL',
                                         'PCHazard': 'PC-Hazard'
                                         }
                             }).pivot(index=['model'], 

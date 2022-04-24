@@ -77,8 +77,7 @@ def nll_logistic_hazard(phi: Tensor, idx_durations: Tensor, events: Tensor,
     events = events.view(-1, 1)
     idx_durations = idx_durations.view(-1, 1)
 
-    y_bce = torch.zeros_like(phi).scatter(1, idx_durations, events)
-    
+    y_bce = torch.zeros_like(phi, dtype=torch.int64).scatter(1, idx_durations, events).float()
     bce = F.binary_cross_entropy_with_logits(phi, y_bce, reduction='none')
     loss = bce.cumsum(1).gather(1, idx_durations).view(-1)
     return _reduction(loss, reduction)

@@ -248,6 +248,8 @@ class Trainer:
         self.model = model
         if metrics is None:
             self.metrics = [NLLPCHazardLoss(),]
+        else:
+            self.metrics = metrics
 
         self.train_logs = defaultdict(list)
         self.get_target = lambda df: (df['duration'].values, df['event'].values)
@@ -431,9 +433,19 @@ class Trainer:
                     batch_y_train = tensor_y_train["risk_{}".format(risk)][batch_idx*batch_size:(batch_idx+1)*batch_size]
                     if len(self.metrics) == 1: # only NLLPCHazardLoss is asigned
                         if batch_loss is None:
-                            batch_loss = self.metrics[0](phi[1], batch_y_train[:,0].long(), batch_y_train[:,1].long(), batch_y_train[:,2].float())
+                            # try NLLPCHazardLoss else NLLLogistiHazardLoss
+                            try:
+                                batch_loss = self.metrics[0](phi[1], batch_y_train[:,0].long(), batch_y_train[:,1].long(), batch_y_train[:,2].float())
+                            except:
+                                batch_loss = self.metrics[0](phi[1], batch_y_train[:,0].long(), batch_y_train[:,1].long())
+
                         else:
-                            batch_loss += self.metrics[0](phi[1], batch_y_train[:,0].long(), batch_y_train[:,1].long(), batch_y_train[:,2].float())
+                            # try NLLPCHazardLoss else NLLLogistiHazardLoss
+                            try:
+                                batch_loss += self.metrics[0](phi[1], batch_y_train[:,0].long(), batch_y_train[:,1].long(), batch_y_train[:,2].float())
+                            except:
+                                batch_loss += self.metrics[0](phi[1], batch_y_train[:,0].long(), batch_y_train[:,1].long())
+
                     else:
                         raise NotImplementedError
 
@@ -448,7 +460,11 @@ class Trainer:
                 with torch.no_grad():
                     for risk in range(self.model.config.num_event):
                         phi_val = self.model.predict(tensor_val, val_batch_size, event=risk)
-                        val_loss += self.metrics[0](phi_val, tensor_y_val["risk_{}".format(risk)][:,0].long(), tensor_y_val["risk_{}".format(risk)][:,1].long(), tensor_y_val["risk_{}".format(risk)][:,2].float())
+                        # try NLLPCHazardLoss else NLLLogistiHazardLoss
+                        try:
+                            val_loss += self.metrics[0](phi_val, tensor_y_val["risk_{}".format(risk)][:,0].long(), tensor_y_val["risk_{}".format(risk)][:,1].long(), tensor_y_val["risk_{}".format(risk)][:,2].float())
+                        except:
+                            val_loss += self.metrics[0](phi_val, tensor_y_val["risk_{}".format(risk)][:,0].long(), tensor_y_val["risk_{}".format(risk)][:,1].long())
 
                 print("[Train-{}]: {}".format(epoch, epoch_loss / (batch_idx+1)))
                 print("[Val-{}]: {}".format(epoch, val_loss.item()))
