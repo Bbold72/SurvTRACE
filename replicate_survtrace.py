@@ -21,19 +21,22 @@ data_hyperparams = {
                 'batch_size': 64,
                 'weight_decay': 1e-4,
                 'learning_rate': 1e-3,
-                'epochs': 20,
+                'epochs': 1,
+                'variants': ['woMTL']
                 },
             'support': {
                 'batch_size': 128,
                 'weight_decay': 0,
                 'learning_rate': 1e-3,
-                'epochs': 20,
+                'epochs': 1,
+                'variants': ['woMTL'],
                 },
             'seer': {
                 'batch_size': 1024,
                 'weight_decay': 0,
                 'learning_rate': 1e-4,
-                'epochs': 100,
+                'epochs': 1,
+                'variants': ['woMTL'],
                 }
             }
 
@@ -59,33 +62,36 @@ for dataset_name in datasets:
     if dataset_name == 'seer':
         hparams['val_batch_size'] = 10000
 
-    for i in range(num_runs):
+    for variant in hparams['variants']:
 
-         # load data - also splits data
-        df, df_train, df_y_train, df_test, df_y_test, df_val, df_y_val = load_data(STConfig)
+        for i in range(num_runs):
 
-        # get model
-        set_random_seed(STConfig['seed'])
-        model = SurvTraceMulti(STConfig) if dataset_name == 'seer' else SurvTraceSingle(STConfig)
+            # load data - also splits data
+            df, df_train, df_y_train, df_test, df_y_test, df_val, df_y_val = load_data(STConfig)
 
-        # initialize a trainer
-        trainer = Trainer(model)
+            # get model
+            set_random_seed(STConfig['seed'])
+            model = SurvTraceMulti(STConfig) if dataset_name == 'seer' else SurvTraceSingle(STConfig)
 
-        train_time_start = time.time()
+            # initialize a trainer
+            trainer = Trainer(model)
 
-        train_loss, val_loss = trainer.fit((df_train, df_y_train), (df_val, df_y_val), **hparams,)
+            train_time_start = time.time()
 
-        train_time_finish = time.time()
+            train_loss, val_loss = trainer.fit((df_train, df_y_train), (df_val, df_y_val), **hparams,)
 
-        # evaluate model
-        evaluator = Evaluator(df, df_train.index)
-        run = evaluator.eval(model, (df_test, df_y_test))
-        run['train_time'] = train_time_finish - train_time_start
-            
-        runs_list.append(run)
-            
-            
-    file_name = 'survtrace' + '_' + STConfig['data'] + '.pickle'
-    with open(Path('results', file_name), 'wb') as f:
-        pickle.dump(runs_list, f)
- 
+            train_time_finish = time.time()
+
+            # evaluate model
+            evaluator = Evaluator(df, df_train.index)
+            run = evaluator.eval(model, (df_test, df_y_test))
+            run['train_time'] = train_time_finish - train_time_start
+                
+            runs_list.append(run)
+
+        if variant != '':
+            variant = '-' + variant
+        file_name = f'survtrace{variant}_{STConfig["data"]}.pickle'
+        with open(Path('results', file_name), 'wb') as f:
+            pickle.dump(runs_list, f)
+    

@@ -32,6 +32,7 @@ def aggregate_raw_data():
     return df
 
 
+# TODO: add formatting for cause-specific
 def format_df(df, is_compare_df=False):
 
     df = (df.round({'mean': 3, 
@@ -46,16 +47,14 @@ def format_df(df, is_compare_df=False):
         df['metric'] = df['metric'].str.replace(r'\(.*\)', '%', regex=True)
 
     mask = df['horizon'].str.contains('brier', regex=False)
-    df = (df[~mask].replace({'model': {'DeepHitCompeting': 'DeepHit',
-                                                        'survtrace': 'SurvTRACE',
-                                                        'PCHazard': 'PC-Hazard',
-                                                        'DeepHitSingle': 'DeepHit'
-                                                        }
-                                            }
-                                        ).pivot(index=['model'], 
-                                                columns=['dataset', 'horizon'], 
-                                                values=['metric']
-                                                )
+    df = (df[~mask].replace({'model': {'survtrace': 'SurvTRACE',
+                                        'survtrace-woMTL': 'SurvTRACE w/o MTL',
+                                        'PCHazard': 'PC-Hazard'
+                                        }
+                            }).pivot(index=['model'], 
+                                        columns=['dataset', 'horizon'], 
+                                        values=['metric']
+                                        )
                     )       
     print(df.to_latex())
 
