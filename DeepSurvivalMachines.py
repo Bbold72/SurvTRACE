@@ -9,7 +9,6 @@ from baselines.evaluator import EvaluatorSingleDSM
 from baselines.evaluator import EvaluatorCompetingDSM
 from baselines.utils import export_results, update_run
 
-import numpy as np
 
 num_runs = 10
 datasets = ['metabric', 'support', 'seer']
@@ -92,8 +91,6 @@ for dataset_name in datasets:
 
         # load data
         data = Data(config)
-        print(np.unique(data.train_outcomes))
-        # params = create_parameter_grid(config, ['learning_rate', 'hidden_size', 'k', 'distribution'])
         params = ParameterGrid(dict(config.hyperparameters))
 
         # train model
