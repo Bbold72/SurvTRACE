@@ -5,8 +5,6 @@ from pathlib import Path
 import pickle
 import os
 
-from torch import double, float64
-
 
 def aggregate_raw_data():
     df_list = []
