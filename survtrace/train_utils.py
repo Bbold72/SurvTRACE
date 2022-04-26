@@ -362,11 +362,11 @@ class Trainer:
                     print(f"early stops at epoch {epoch+1}")
                     # load best checkpoint
                     self.model.load_state_dict(torch.load(self.ckpt))
-                    return train_loss_list, val_loss_list
+                    return train_loss_list, val_loss_list, epoch+1
             else:
                 print("[Train-{}]: {}".format(epoch, epoch_loss))
 
-        return train_loss_list, val_loss_list
+        return train_loss_list, val_loss_list, epoch+1
 
     def train_multi_event(self,
         train_set,
@@ -478,11 +478,11 @@ class Trainer:
                     print(f"early stops at epoch {epoch+1}")
                     # load best checkpoint
                     self.model.load_state_dict(torch.load(self.ckpt))
-                    return train_loss_list, val_loss_list
+                    return train_loss_list, val_loss_list, epoch+1
             else:
                 print("[Train-{}]: {}".format(epoch, epoch_loss))
 
-        return train_loss_list, val_loss_list
+        return train_loss_list, val_loss_list, epoch+1
 
     def fit(self, 
         train_set,

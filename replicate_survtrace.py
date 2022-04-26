@@ -13,6 +13,8 @@ from survtrace.config import STConfig
 from survtrace.losses import NLLLogistiHazardLoss, NLLPCHazardLoss
 from torch.nn import BCELoss, MSELoss
 
+from baselines.utils import update_run
+
 
 num_runs = 10
 datasets = ['metabric', 'support', 'seer']
@@ -26,14 +28,14 @@ data_hyperparams = {
                 'weight_decay': 1e-4,
                 'learning_rate': 1e-3,
                 'epochs': 100,
-                'variants': ['wo_MTL', ''],
+                'variants': ['woMTL', ''],
                 },
             'support': {
                 'batch_size': 128,
                 'weight_decay': 0,
                 'learning_rate': 1e-3,
                 'epochs': 100,
-                'variants': ['wo_MTL', ''],
+                'variants': ['woMTL', ''],
                 },
             'seer': {
                 'batch_size': 1024,
@@ -81,21 +83,21 @@ for dataset_name in datasets:
             # initialize a trainer
             if variant == 'woIPS-woMTL':
                 trainer = Trainer(model, metrics=[NLLLogistiHazardLoss(),])
-            elif variant == 'wo_MTL':
+            elif variant == 'woMTL':
                 trainer = Trainer(model, metrics=[NLLPCHazardLoss()])
             # complete survtrace
             else:
                 trainer = Trainer(model, metrics=[NLLPCHazardLoss(), BCELoss(), MSELoss()])
 
             train_time_start = time.time()
-            train_loss, val_loss = trainer.fit((df_train, df_y_train), (df_val, df_y_val), **hparams,)
+            train_loss, val_loss, last_epoch = trainer.fit((df_train, df_y_train), (df_val, df_y_val), **hparams,)
             train_time_finish = time.time()
 
             # evaluate model
             evaluator = Evaluator(df, df_train.index)
             run = evaluator.eval(model, (df_test, df_y_test))
             run['train_time'] = train_time_finish - train_time_start
-                
+            run = update_run(run, train_time_start, train_time_finish, last_epoch)
             runs_list.append(run)
 
         file_name = f'survtrace{variant_name}_{STConfig["data"]}.pickle'
