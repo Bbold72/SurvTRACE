@@ -10,27 +10,30 @@ from survtrace.model import SurvTraceMulti
 from survtrace.train_utils import Trainer
 from survtrace.config import STConfig
 
-from survtrace.losses import NLLLogistiHazardLoss
+from survtrace.losses import NLLLogistiHazardLoss, NLLPCHazardLoss
+from torch.nn import BCELoss, MSELoss
 
 
-num_runs = 1
+num_runs = 10
 datasets = ['metabric', 'support', 'seer']
-# datasets = ['seer']
+datasets = ['metabric', 'support']
+# datasets = ['metabric']
+
 
 data_hyperparams = {
             'metabric': {
                 'batch_size': 64,
                 'weight_decay': 1e-4,
                 'learning_rate': 1e-3,
-                'epochs': 1,
-                'variants': ['woMTL']
+                'epochs': 100,
+                'variants': ['wo_MTL', ''],
                 },
             'support': {
                 'batch_size': 128,
                 'weight_decay': 0,
                 'learning_rate': 1e-3,
-                'epochs': 1,
-                'variants': ['woMTL'],
+                'epochs': 100,
+                'variants': ['wo_MTL', ''],
                 },
             'seer': {
                 'batch_size': 1024,
@@ -78,8 +81,11 @@ for dataset_name in datasets:
             # initialize a trainer
             if variant == 'woIPS-woMTL':
                 trainer = Trainer(model, metrics=[NLLLogistiHazardLoss(),])
+            elif variant == 'wo_MTL':
+                trainer = Trainer(model, metrics=[NLLPCHazardLoss()])
+            # complete survtrace
             else:
-                trainer = Trainer(model)
+                trainer = Trainer(model, metrics=[NLLPCHazardLoss(), BCELoss(), MSELoss()])
 
             train_time_start = time.time()
             train_loss, val_loss = trainer.fit((df_train, df_y_train), (df_val, df_y_val), **hparams,)

@@ -7,7 +7,7 @@ import pandas as pd
 import torchtuples as tt
 import pdb
 import torch.nn.functional as F
-from .modeling_bert import BaseModel, BertEmbeddings, BertEncoder, BertCLS, BertCLSMulti
+from .modeling_bert import BaseModel, BertEmbeddings, BertEncoder, BertCLS, BertCLSEvent, BertCLSTime, BertCLSMulti
 from .utils import pad_col
 from .config import STConfig
 
@@ -154,6 +154,10 @@ class SurvTraceSingle(BaseModel):
         self.duration_index = config['duration_index']
         self.use_gpu = False
 
+        # mutli task learning nets
+        self.cls_event = BertCLSEvent(config, num_output=1)
+        self.cls_time = BertCLSTime(config, num_output=1)
+
     @property
     def duration_index(self):
         """
@@ -242,7 +246,13 @@ class SurvTraceSingle(BaseModel):
 
         predict_logits = self.cls(encoder_outputs[0])
 
-        return sequence_output, predict_logits
+        # predict whether and event happend or not
+        predict_event = self.cls_event(encoder_outputs[0])
+        
+        # predict which time quantile event/censoring occured
+        predict_time = self.cls_time(encoder_outputs[0])
+
+        return sequence_output, predict_logits, predict_event, predict_time
 
     def predict(self, x_input, batch_size=None):
         if not isinstance(x_input, torch.Tensor):

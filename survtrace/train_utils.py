@@ -4,6 +4,7 @@ from collections import defaultdict
 import pdb
 import os
 import math
+from matplotlib.pyplot import axes
 import numpy as np
 import torch
 from torch.optim import Optimizer
@@ -330,12 +331,15 @@ class Trainer:
                 batch_x_num = batch_train[:, self.model.config.num_categorical_feature:].float()
 
                 phi = self.model(input_ids=batch_x_cat, input_nums=batch_x_num)
-
                 if len(self.metrics) == 1: # only NLLPCHazardLoss is asigned
+                    # batch_y_train[:, 0] - quantile/time
+                    # batch_y_train[:, 1] - event indicator
+                    # batch_y_train[:, 3] - proportion
                     batch_loss = self.metrics[0](phi[1], batch_y_train[:,0].long(), batch_y_train[:,1].long(), batch_y_train[:,2].float(), reduction="mean")
-
                 else:
-                    raise NotImplementedError
+                    batch_loss = self.metrics[0](phi[1], batch_y_train[:,0].long(), batch_y_train[:,1].long(), batch_y_train[:,2].float(), reduction="mean")
+                    batch_loss += self.metrics[1](phi[2].squeeze(-1), batch_y_train[:, 1].float()) # event
+                    batch_loss += self.metrics[2](phi[3].squeeze(-1), batch_y_train[:, 0].float()) # time
 
                 batch_loss.backward()
                 optimizer.step()

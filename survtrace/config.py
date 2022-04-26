@@ -20,7 +20,7 @@ STConfig = EasyDict(
         'num_event': 1, # only set when using SurvTraceMulti for competing risks
         'hidden_act': 'gelu',
         'attention_probs_dropout_prob': 0.1,
-        'early_stop_patience': 5,
+        'early_stop_patience': 10,
         'initializer_range': 0.001,
         'layer_norm_eps': 1e-12,
         'max_position_embeddings': 512, # # no use

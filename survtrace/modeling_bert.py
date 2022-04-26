@@ -1,8 +1,10 @@
 """
 modeling_bert.py
 """
+from distutils.command.config import config
 import torch
 from torch import Tensor, device, dtype, nn
+from torch.nn.functional import sigmoid
 import pdb
 import math, os
 from typing import Any, Callable, Dict, List, Optional, Set, Tuple, Union
@@ -500,8 +502,11 @@ class DenseVanillaBlock(nn.Module):
         return input
 
 class BertCLS(nn.Module):
-    def __init__(self, config):
+    def __init__(self, config, num_output=None):
         super().__init__()
+        if num_output is None:
+            num_output = config.out_feature
+
         # concatenate embeddings of all features
         net = []
         w_init = lambda w: nn.init.kaiming_normal_(w, nonlinearity="relu")
@@ -511,13 +516,34 @@ class BertCLS(nn.Module):
                 batch_norm=True, dropout=config.hidden_dropout_prob, activation=nn.ReLU,
                 w_init_=w_init)
         )
-        net.append(nn.Linear(config.intermediate_size, config.out_feature))
+        net.append(nn.Linear(config.intermediate_size, num_output))
         self.net = nn.Sequential(*net)
 
     def forward(self, hidden_states):
         hidden_states = hidden_states.flatten(start_dim=1)
         hidden_states = self.net(hidden_states)
         return hidden_states
+
+
+class BertCLSEvent(BertCLS):
+    def __init__(self, config, num_output=1):
+        super().__init__(config, num_output)
+
+    def forward(self, hidden_states):
+        out = super().forward(hidden_states)
+        out = sigmoid(out)
+        return out
+
+
+class BertCLSTime(BertCLS):
+    def __init__(self, config, num_output=1):
+        super().__init__(config, num_output)
+        self.time_scale_factor = len(config.horizons)
+
+    def forward(self, hidden_states):
+        out = super().forward(hidden_states)
+        out = torch.round(sigmoid(out) * self.time_scale_factor)
+        return out
 
 class BertCLSMulti(nn.Module):
     def __init__(self, config):
