@@ -334,7 +334,7 @@ class Trainer:
                 if len(self.metrics) == 1: # only NLLPCHazardLoss is asigned
                     # batch_y_train[:, 0] - quantile/time
                     # batch_y_train[:, 1] - event indicator
-                    # batch_y_train[:, 3] - proportion
+                    # batch_y_train[:, 2] - proportion
                     batch_loss = self.metrics[0](phi[1], batch_y_train[:,0].long(), batch_y_train[:,1].long(), batch_y_train[:,2].float(), reduction="mean")
                 else:
                     batch_loss = self.metrics[0](phi[1], batch_y_train[:,0].long(), batch_y_train[:,1].long(), batch_y_train[:,2].float(), reduction="mean")
@@ -432,26 +432,38 @@ class Trainer:
                 batch_x_num = batch_train[:, self.model.config.num_categorical_feature:].float()
 
                 batch_loss = None
+                # batch_y_train[:, 0] - quantile/time
+                # batch_y_train[:, 1] - event indicator
+                # batch_y_train[:, 2] - proportion
+                # Note: time and proportion are the same for each risk
                 for risk in range(self.model.config.num_event):
                     phi = self.model(input_ids=batch_x_cat, input_nums=batch_x_num, event=risk)
                     batch_y_train = tensor_y_train["risk_{}".format(risk)][batch_idx*batch_size:(batch_idx+1)*batch_size]
-                    if len(self.metrics) == 1: # only NLLPCHazardLoss is asigned
-                        if batch_loss is None:
-                            # try NLLPCHazardLoss else NLLLogistiHazardLoss
-                            try:
-                                batch_loss = self.metrics[0](phi[1], batch_y_train[:,0].long(), batch_y_train[:,1].long(), batch_y_train[:,2].float())
-                            except:
-                                batch_loss = self.metrics[0](phi[1], batch_y_train[:,0].long(), batch_y_train[:,1].long())
 
-                        else:
-                            # try NLLPCHazardLoss else NLLLogistiHazardLoss
-                            try:
-                                batch_loss += self.metrics[0](phi[1], batch_y_train[:,0].long(), batch_y_train[:,1].long(), batch_y_train[:,2].float())
-                            except:
-                                batch_loss += self.metrics[0](phi[1], batch_y_train[:,0].long(), batch_y_train[:,1].long())
+                    if batch_loss is None:
+                        # try NLLPCHazardLoss else NLLLogistiHazardLoss
+                        try:
+                            # IPS
+                            batch_loss = self.metrics[0](phi[1], batch_y_train[:,0].long(), batch_y_train[:,1].long(), batch_y_train[:,2].float())
+                        except:
+                            batch_loss = self.metrics[0](phi[1], batch_y_train[:,0].long(), batch_y_train[:,1].long())
 
                     else:
-                        raise NotImplementedError
+                        # try NLLPCHazardLoss else NLLLogistiHazardLoss
+                        try:
+                            # IPS
+                            batch_loss += self.metrics[0](phi[1], batch_y_train[:,0].long(), batch_y_train[:,1].long(), batch_y_train[:,2].float())
+                        except:
+                            batch_loss += self.metrics[0](phi[1], batch_y_train[:,0].long(), batch_y_train[:,1].long())
+                    
+                # add MTL
+                if len(self.metrics) > 1:
+                    batch_y_event_train = tensor_y_train['risk_0'][batch_idx*batch_size:(batch_idx+1)*batch_size][:,1] + \
+                        tensor_y_train['risk_1'][batch_idx*batch_size:(batch_idx+1)*batch_size][:,1]     # see if any event has happened
+                    batch_loss += self.metrics[1](phi[2].squeeze(-1), batch_y_event_train.float())       # event
+                    batch_loss += self.metrics[2](phi[3].squeeze(-1), batch_y_train[:, 0].float())       # time - event/censoring time same for each risk
+
+                    
 
                 batch_loss.backward()
                 optimizer.step()
