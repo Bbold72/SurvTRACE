@@ -8,7 +8,10 @@ class Data:
     def __init__(self, config, censor_event=False):
 
         # load data
-        self.df, self.df_train, self.df_y_train, self.df_test, self.df_y_test, self.df_val, self.df_y_val = load_data(config, censor_event)
+        # TODO: splitting the data into train, validation, test should be separate process. Each run of each experiment
+        # should use the same train, validation, test datasets so the results are comparable. currently each run, of each
+        # dataset uses its own train, validation, test.
+        self.df, self.df_train, self.df_y_train, self.df_test, self.df_y_test, self.df_val, self.df_y_val = load_data(config)
 
         # censor event
         if censor_event:
