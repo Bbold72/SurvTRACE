@@ -108,7 +108,7 @@ class SurvTraceMulti(BaseModel):
 
         else:
             return sequence_output, predict_logits
-            
+
 
     def predict(self, x_input, batch_size=None, event=0):
         if not isinstance(x_input, torch.Tensor):
@@ -163,7 +163,7 @@ class SurvTraceMulti(BaseModel):
 class SurvTraceSingle(BaseModel):
     '''survtrace used for single event survival analysis
     '''
-    def __init__(self, config):
+    def __init__(self, config, has_mtl):
         super().__init__(config)
         self.embeddings = BertEmbeddings(config)
         self.encoder = BertEncoder(config)
@@ -174,8 +174,10 @@ class SurvTraceSingle(BaseModel):
         self.use_gpu = False
 
         # mutli task learning nets
-        self.cls_event = BertCLSEvent(config, num_output=1)
-        self.cls_time = BertCLSTime(config, num_output=1)
+        self.has_mtl = has_mtl
+        if self.has_mtl:
+            self.cls_event = BertCLSEvent(config, num_output=1)
+            self.cls_time = BertCLSTime(config, num_output=1)
 
     @property
     def duration_index(self):
@@ -265,14 +267,20 @@ class SurvTraceSingle(BaseModel):
 
         predict_logits = self.cls(encoder_outputs[0])
 
-        # predict whether and event happend or not
-        predict_event = self.cls_event(encoder_outputs[0])
-        
-        # predict which time quantile event/censoring occured
-        predict_time = self.cls_time(encoder_outputs[0])
+        if self.has_mtl:
 
-        return sequence_output, predict_logits, predict_event, predict_time
+            # predict whether and event happend or not
+            predict_event = self.cls_event(encoder_outputs[0])
+            
+            # predict which time quantile event/censoring occured
+            predict_time = self.cls_time(encoder_outputs[0])
 
+            return sequence_output, predict_logits, predict_event, predict_time
+
+        else:
+            return sequence_output, predict_logits
+
+            
     def predict(self, x_input, batch_size=None):
         if not isinstance(x_input, torch.Tensor):
             x_input_cat = x_input.iloc[:, :self.config.num_categorical_feature]
