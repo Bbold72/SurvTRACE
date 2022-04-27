@@ -16,7 +16,7 @@ from torch.nn import BCELoss, MSELoss
 from baselines.utils import update_run
 
 
-num_runs = 1
+num_runs = 10
 datasets = ['metabric', 'support', 'seer']
 datasets = ['metabric', 'support']
 datasets = ['seer']
@@ -41,9 +41,9 @@ data_hyperparams = {
                 'batch_size': 1024,
                 'weight_decay': 0,
                 'learning_rate': 1e-4,
-                'epochs': 1,
+                'epochs': 100,
                 # 'variants': ['woIPS-woMTL', 'woMTL', 'woIPS', ''],
-                'variants': ['woIPS-woMTL'],
+                'variants': ['woIPS'],
                 }
             }
 
@@ -73,6 +73,7 @@ for dataset_name in datasets:
         # store each run in list
         runs_list = []
         for i in range(num_runs):
+            print(f'Run {i+1}/{num_runs}')
 
             # load data - also splits data
             df, df_train, df_y_train, df_test, df_y_test, df_val, df_y_val = load_data(STConfig)
