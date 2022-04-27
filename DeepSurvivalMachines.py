@@ -1,4 +1,3 @@
-from easydict import EasyDict
 import time
 
 from auton_survival.models.dsm import DeepSurvivalMachines
@@ -8,77 +7,19 @@ from baselines.data_class import Data
 from baselines.evaluator import EvaluatorSingleDSM
 from baselines.evaluator import EvaluatorCompetingDSM
 from baselines.utils import export_results, update_run
+from baselines import configurations
 
 
 num_runs = 10
 datasets = ['metabric', 'support', 'seer']
+model_name = 'DSM'
 
-# define the setup parameters
-config_metabric = EasyDict({
-    'data': 'metabric',
-    'horizons': [.25, .5, .75],
-    'batch_size': 64,
-    'epochs': 100,
-    'hyperparameters': EasyDict({
-        'hidden_size': [[100, 100]],
-        'k': [4],
-        'distribution': ['Weibull'],
-        'learning_rate': [1e-3],
-        'discount': [0.5]
-        # 'hidden_size': [[50], [50, 50], [100], [100, 100]],
-        # 'k': [4, 6, 8],
-        # 'distribution': ['LogNormal', 'Weibull'],
-        # 'learning_rate': [1e-3, 1e-4],
-        # 'discount': [0.5, 0.75, 1]
-    })
-})
-config_support = EasyDict({
-    'data': 'support',
-    'horizons': [.25, .5, .75],
-    'batch_size': 128,
-    'epochs': 200,
-    'hyperparameters': EasyDict({
-        'hidden_size': [[100, 100]],
-        'k': [4],
-        'distribution': ['Weibull'],
-        'learning_rate': [1e-3],
-        'discount': [0.5]
-        # 'hidden_size': [[50], [50, 50], [100], [100, 100]],
-        # 'k': [4, 6, 8],
-        # 'distribution': ['LogNormal', 'Weibull'],
-        # 'learning_rate': [1e-3, 1e-4],
-        # 'discount': [0.5, 0.75, 1]
-    })
-})
-config_seer = EasyDict({
-    'data': 'seer',
-    'horizons': [.25, .5, .75],
-    'batch_size': 1024,
-    'epochs': 200,
-    'hyperparameters': EasyDict({
-        'hidden_size': [[100, 100]],
-        'k': [4],
-        'distribution': ['Weibull'],
-        'learning_rate': [1e-4],
-        'discount': [0.5]
-        # 'hidden_size': [[50], [50, 50], [100], [100, 100]],
-        # 'k': [4, 6, 8],
-        # 'distribution': ['LogNormal', 'Weibull'],
-        # 'learning_rate': [1e-3, 1e-4],
-        # 'discount': [0.5, 0.75, 1]
-    })
-})
-config_dic = {
-    'metabric': config_metabric,
-    'support': config_support,
-    'seer': config_seer
-}
 
 for dataset_name in datasets:
-    config = config_dic[dataset_name]
-    config.model = 'DSM'
-    print('Running DSM on ' + dataset_name)
-
+    config = getattr(configurations, f'{model_name}_{dataset_name}')
+    config.model = model_name
+    print(f'Running {config.model} on {dataset_name}')
+    print(config)
 
     # select evaluator based on dataset
     Evaluator = EvaluatorCompetingDSM if config.data == 'seer' else EvaluatorSingleDSM
