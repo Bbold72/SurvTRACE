@@ -16,10 +16,10 @@ from torch.nn import BCELoss, MSELoss
 from baselines.utils import update_run
 
 
-num_runs = 1
+num_runs = 10
 datasets = ['metabric', 'support', 'seer']
 datasets = ['metabric', 'support']
-datasets = ['seer']
+# datasets = ['seer']
 
 
 data_hyperparams = {
@@ -42,8 +42,8 @@ data_hyperparams = {
                 'weight_decay': 0,
                 'learning_rate': 1e-4,
                 'epochs': 100,
-                # 'variants': ['woIPS-woMTL', 'woMTL', 'woIPS', ''],
-                'variants': ['woMTL'],
+                'variants': ['woIPS-woMTL', 'woMTL', 'woIPS', ''],
+                # 'variants': ['woMTL'],
                 }
             }
 
