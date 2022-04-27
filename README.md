@@ -6,7 +6,7 @@
 - [X] Citation to the original paper
 - [X] Link to the original paper’s repo (if applicable)
 - [X] Dependencies
-- [ ] Data download instruction
+- [X] Data download instruction
 - [ ] Preprocessing code + command (if applicable)
 - [ ] Training code + command (if applicable)
 - [ ] Evaluation code + command (if applicable)
@@ -37,3 +37,29 @@ or try to install from the requirement.txt
 ```bash
 pip3 install -r requirements.txt
 ```
+
+### How to get the data
+
+For this project we use different datasets to run our experiments.
+
+* Study to Understand Prognoses Preferences Outcomes and Risks of Treatment (SUPPORT) (Knaus et al. 1995).
+* Molecular Taxonomy of Breast Cancer International Consortium (METABRIC) (Curtis et al. 2012).
+* Surveillance, Epidemiology, and End Results Program (SEER).
+
+[`pycox`](https://github.com/havakv/pycox) provides the SUPPORT and METABRIC [datasets](https://github.com/havakv/pycox#real-datasets). Meanwhile, access to SEER has to be requested as the instructions in the following sub section.
+
+#### How to get the SEER dataset.
+
+1. Go to https://seer.cancer.gov/data/ to ask for data request from SEER following the guide there.
+
+2. After complete the step one, we should have the **seerstat software** for data access. Open it and sign in with the username and password sent by seer.
+
+3. Use seerstat to open the **./data/seer.sl** file. Click on the 'excute' icon to request from the seer database. We will obtain a csv file.
+
+4. Move the csv file to **./data/seer_raw.csv**, then run the python script **process_seer.py**, as
+
+   ```shell
+   python process_seer.py
+   ```
+
+   we will obtain the processed seer data named **seer_processed.csv**.
