@@ -16,7 +16,7 @@ from torch.nn import BCELoss, MSELoss
 from baselines.utils import update_run
 
 
-num_runs = 10
+num_runs = 1
 datasets = ['metabric', 'support', 'seer']
 datasets = ['metabric', 'support']
 datasets = ['seer']
@@ -43,7 +43,7 @@ data_hyperparams = {
                 'learning_rate': 1e-4,
                 'epochs': 100,
                 # 'variants': ['woIPS-woMTL', 'woMTL', 'woIPS', ''],
-                'variants': ['woIPS'],
+                'variants': ['woMTL'],
                 }
             }
 
@@ -80,17 +80,21 @@ for dataset_name in datasets:
 
             # get model
             set_random_seed(STConfig['seed'])
-            model = SurvTraceMulti(STConfig) if dataset_name == 'seer' else SurvTraceSingle(STConfig)
+            get_model = lambda has_mtl: SurvTraceMulti(STConfig, has_mtl) if dataset_name == 'seer' else SurvTraceSingle(STConfig, has_mtl)
 
             # initialize a trainer
             if variant == 'woIPS-woMTL':
+                model = get_model(has_mtl=False)
                 trainer = Trainer(model, metrics=[NLLLogistiHazardLoss(),])
             elif variant == 'woMTL':
+                model = get_model(has_mtl=False)
                 trainer = Trainer(model, metrics=[NLLPCHazardLoss()])
             elif variant == 'woIPS':
+                model = get_model(has_mtl=True)
                 trainer = Trainer(model, metrics=[NLLLogistiHazardLoss(), BCELoss(), MSELoss()])
             # complete survtrace
             else:
+                model = get_model(has_mtl=True)
                 trainer = Trainer(model, metrics=[NLLPCHazardLoss(), BCELoss(), MSELoss()])
 
             train_time_start = time.time()

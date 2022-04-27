@@ -393,6 +393,7 @@ class Trainer:
         # assign no weight decay on these parameters
         no_decay = ['bias', 'LayerNorm.bias', 'LayerNorm.weight']
         param_optimizer = list(self.model.named_parameters())
+        # print(list(self.model.named_parameters()))
         optimizer_grouped_parameters = [
             {'params': [p for n, p in param_optimizer if not any(nd in n for nd in no_decay)], 'weight_decay': weight_decay},
             {'params': [p for n, p in param_optimizer if any(nd in n for nd in no_decay)], 'weight_decay': 0.0}
@@ -457,7 +458,7 @@ class Trainer:
                             batch_loss += self.metrics[0](phi[1], batch_y_train[:,0].long(), batch_y_train[:,1].long())
                     
                 # add MTL
-                if len(self.metrics) > 1:
+                if self.model.has_mtl:
                     batch_y_event_train = tensor_y_train['risk_0'][batch_idx*batch_size:(batch_idx+1)*batch_size][:,1] + \
                         tensor_y_train['risk_1'][batch_idx*batch_size:(batch_idx+1)*batch_size][:,1]     # see if any event has happened
                     batch_loss += self.metrics[1](phi[2].squeeze(-1), batch_y_event_train.float())       # event
