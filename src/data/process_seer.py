@@ -1,8 +1,17 @@
-import pandas as pd
+import os
 import pdb
+import pandas as pd
 import numpy as np
 
-df = pd.read_csv("seer_raw.csv")
+ROOT_DIR = os.path.realpath(os.path.join(os.path.dirname(__file__), '..', '..'))
+DATA_PATH = os.path.join(ROOT_DIR, 'data')
+RAW_DATA_PATH = os.path.join(ROOT_DIR, 'data', 'raw')
+PROCESSED_DATA_PATH = os.path.join(ROOT_DIR, 'data', 'processed')
+SEER_RAW_PATH = os.path.join(RAW_DATA_PATH, 'seer_raw.csv')
+SEER_FORMAT_PATH = os.path.join(PROCESSED_DATA_PATH, 'seer_format.csv')
+SEER_PROCESSED_PATH = os.path.join(PROCESSED_DATA_PATH, 'seer_processed.csv')
+
+df = pd.read_csv(SEER_RAW_PATH)
 
 df = df[df["Survival months"] != "Unknown"]
 df = df.rename(columns={"Survival months":"duration"})
@@ -75,12 +84,12 @@ df = pd.concat([
     df[cat_cols], df[num_cols], df["duration"], df["event_heart"], df["event_breast"]
     ], axis=1)
 
-df.to_csv("seer_format.csv", index=False)
+df.to_csv(SEER_FORMAT_PATH, index=False)
 print("done first")
 
 from sklearn.preprocessing import KBinsDiscretizer, LabelEncoder, StandardScaler
 
-df = pd.read_csv("seer_format.csv")
+df = pd.read_csv(SEER_FORMAT_PATH)
 x_df_cat = {}
 for col in cat_cols:
     x_df_cat[col] = LabelEncoder().fit_transform(df[col])
@@ -92,7 +101,7 @@ x_df_num = pd.DataFrame(x_num, columns=num_cols)
 df = pd.concat([
     x_df_cat, x_df_num, df["duration"], df["event_heart"], df["event_breast"]
     ], axis=1)
-df.to_csv("seer_processed.csv", index=False)
+df.to_csv(SEER_PROCESSED_PATH, index=False)
 
 
 print("Done")

@@ -4,6 +4,9 @@ data/checkpoints*
 tutorials/*
 notebooks/*
 
+# Data
+data/**/*.csv
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
