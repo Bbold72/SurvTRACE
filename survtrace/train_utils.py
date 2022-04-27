@@ -294,7 +294,7 @@ class Trainer:
         # assign no weight decay on these parameters
         no_decay = ['bias', 'LayerNorm.bias', 'LayerNorm.weight']
         param_optimizer = list(self.model.named_parameters())
-        print(param_optimizer)
+        # print(param_optimizer)
         optimizer_grouped_parameters = [
             {'params': [p for n, p in param_optimizer if not any(nd in n for nd in no_decay)], 'weight_decay': weight_decay},
             {'params': [p for n, p in param_optimizer if any(nd in n for nd in no_decay)], 'weight_decay': 0.0}
