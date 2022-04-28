@@ -8,9 +8,6 @@ from baselines.models import CPH, DeepHitSingleEvent, DeepHitCompeting, DeepSurv
 from baselines.utils import export_results, update_run
 
 
-
-# TODO: add Deep Survival Machines
-# TODO: add hyperparameter tuning if time permits
 def run_experiment(dataset_name: str, model_name: str, num_runs=10, event_to_censor: Optional[str]=None):
     '''
     trains the model on the given dataset 
