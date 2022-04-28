@@ -2,13 +2,12 @@ from easydict import EasyDict
 import time
 
 
-from sksurv.linear_model import CoxPHSurvivalAnalysis
 
 from baselines.data_class import Data
 from baselines.evaluator import EvaluatorCPH
 from baselines.utils import export_results, update_run
 from baselines import configurations
-
+from baselines.models import CPH
 
 
 num_runs = 10
@@ -29,7 +28,6 @@ for dataset_name in datasets:
     config.model = model_name
     print(f'Running {config.model} on {dataset_name}')
     print(config)
-
 
     if censor_event:
         config.event_to_censor = event_to_censor
@@ -54,15 +52,15 @@ for dataset_name in datasets:
         data = Data(config, censor_event)
 
         # initialize model
-        CPH = CoxPHSurvivalAnalysis(n_iter=config.epochs, verbose=1)
+        model = CPH(config)
 
         # train model
         train_time_start = time.time()
-        model = CPH.fit(data.x_train, data.y_et_train)
+        model.train(data)
         train_time_finish = time.time()        
 
         # calcuate metrics
-        evaluator = EvaluatorCPH(data, model, config)
+        evaluator = EvaluatorCPH(data, model.model, config)
         run = evaluator.eval()
         run = update_run(run, train_time_start, train_time_finish, config.epochs)
         runs_list.append(run)

@@ -1,24 +1,23 @@
 import numpy as np
 import torchtuples as tt # Some useful functions
 
+from sksurv.linear_model import CoxPHSurvivalAnalysis
 from pycox.models import PCHazard as PCH
-
 from sksurv.ensemble import RandomSurvivalForest
 
 from baselines.dlns import simple_dln
 
-class RSF:
+
+
+class CPH:
 
     def __init__(self, config):
 
-        self.model = RandomSurvivalForest(n_estimators=config.epochs, 
-                                            verbose=1,
-                                            max_depth=4,
-                                            n_jobs=-1
-                                            )
+        self.model = CoxPHSurvivalAnalysis(n_iter=config.epochs, verbose=1)
 
     def train(self, data):
         self.model.fit(data.x_train, data.y_et_train)
+  
 
 
 class PCHazard:
@@ -45,3 +44,16 @@ class PCHazard:
                             val_data=data.val_data
                             )
         return log
+
+class RSF:
+
+    def __init__(self, config):
+
+        self.model = RandomSurvivalForest(n_estimators=config.epochs, 
+                                            verbose=1,
+                                            max_depth=4,
+                                            n_jobs=-1
+                                            )
+
+    def train(self, data):
+        self.model.fit(data.x_train, data.y_et_train)
