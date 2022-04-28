@@ -22,7 +22,10 @@ class BaseModel:
     @abc.abstractclassmethod
     def train(self, data):
         pass
-
+    
+    @abc.abstractclassmethod
+    def calc_survival(self, x_data):
+        pass
 
 class BasePycox(BaseModel):
     
@@ -42,6 +45,9 @@ class BasePycox(BaseModel):
                             )
         self.epochs_trained = self.log.epoch
 
+
+    def calc_survival(self, x_data):
+        return self.model.predict_surv(x_data)
 
 class BaseSksurv(BaseModel):
     def __init__(self, config):
@@ -98,6 +104,8 @@ class DeepHitSingleEvent(BasePycox):
 class DeepSurv(BasePycox):
     def __init__(self, config):
         super().__init__(config)
+        self.eval_offset = 0
+
         config.out_feature = 1   # need to overwrite value set in load_data
         net = simple_dln(config)
 
@@ -109,6 +117,11 @@ class DeepSurv(BasePycox):
     def train(self, data):
         self.log = self.model.fit(data.x_train, data.y_train, self.batch_size, self.epochs, self.callbacks, verbose=True, val_data=data.val_data)
         self.epochs_trained = self.log.epoch
+
+    # overwrite train method
+    def calc_survival(self, x_data):
+        _ = self.model.compute_baseline_hazards()
+        return self.model.predict_surv(x_data)
 
 
 class PCHazard(BasePycox):

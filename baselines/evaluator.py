@@ -83,6 +83,73 @@ class EvaluatorSingle(EvaluatorBase):
         return self.model.predict_surv(self.x_eval)
 
 
+class EvaluatorBaseV2:
+
+    def __init__(self, data, model, config, test_set: bool=True):
+
+        self.model = model
+        self.offset = model.eval_offset
+        self.df_train_all = data.df.loc[data.df_train.index]
+
+        if test_set:
+            self.x_eval = data.x_test
+            self.df_y_eval = data.df_y_test
+        # use validation set
+        else:
+            self.x_eval = data.x_val
+            self.df_y_eval = data.df_y_val
+
+
+        self.times = config['duration_index'][1:-1]
+        self.horizons = config['horizons']
+        self.metric_dict = defaultdict(list)
+    
+    def _make_event_time_array(self, event_var_name):
+        def helper(df):
+            return df_to_event_time_array(df, event_var_name=event_var_name)
+        
+        return helper(self.df_train_all), helper(self.df_y_eval)
+
+
+    def _calc_concordance_index_ipcw_base(self, risk, event_var_name, event_dict_label='', event_print_label=''):
+
+        et_train, et_test = self._make_event_time_array(event_var_name)
+
+        cis = []
+        for i, _ in enumerate(self.times):
+            cis.append(
+                concordance_index_ipcw(et_train, et_test, estimate=risk[:, i+self.offset], tau=self.times[i])[0]
+                )
+            self.metric_dict[f'{self.horizons[i]}_ipcw{event_dict_label}'] = cis[i]
+
+        for horizon in enumerate(self.horizons):
+            print(f"{event_print_label}For {horizon[1]} quantile,")
+            print("TD Concordance Index - IPCW:", cis[horizon[0]])
+    
+    
+    def calc_survival_function(self):
+        return self.model.calc_survival(self.x_eval)
+
+    def _calc_risk(self):
+        surv = self.calc_survival_function()
+        return 1 - surv
+
+    def calc_concordance_index_ipcw(self, event_var_name='event'):
+        risk = self._calc_risk()
+        self._calc_concordance_index_ipcw_base(risk, event_var_name)
+
+    def eval(self):
+        self.calc_concordance_index_ipcw()
+        return self.metric_dict
+        
+
+class EvaluatorSingleV2(EvaluatorBaseV2):
+
+    def __init__(self, data, model, config):
+        super().__init__(data, model, config)
+   
+
+
 class EvaluatorCompeting(EvaluatorBase):
 
     def __init__(self, data, model, config, offset=0):

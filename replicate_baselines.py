@@ -3,7 +3,7 @@ from typing import Optional
 
 from baselines import configurations
 from baselines.data_class import Data
-from baselines.evaluator import EvaluatorCPH, EvaluatorRSF, EvaluatorSingle, EvaluatorCompeting
+from baselines.evaluator import EvaluatorCPH, EvaluatorRSF, EvaluatorSingle, EvaluatorCompeting, EvaluatorSingleV2
 from baselines.models import CPH, DeepHitSingleEvent, DeepHitCompeting, DeepSurv, PCHazard, RSF
 from baselines.utils import export_results, update_run
 
@@ -35,7 +35,7 @@ def run_experiment(dataset_name: str, model_name: str, num_runs=10, event_to_cen
         event_name = ''
     print(f'Running {config.model}{event_name} on {dataset_name}')
 
-    # config.epochs=1
+    config.epochs=1
 
 
     # get corresponding model and evaluator
@@ -52,6 +52,7 @@ def run_experiment(dataset_name: str, model_name: str, num_runs=10, event_to_cen
     elif config.model == 'DeepSurv':
         Model = DeepSurv
         Evaluator = EvaluatorSingle
+        EvaluatorV2 = EvaluatorSingleV2
     elif config.model == 'PCHazard':
         Model = PCHazard
         Evaluator = EvaluatorSingle
@@ -82,6 +83,8 @@ def run_experiment(dataset_name: str, model_name: str, num_runs=10, event_to_cen
         eval_offset=1 if config.model=='PCHazard' else 0
         evaluator = Evaluator(data, m.model, config, eval_offset)
         run = evaluator.eval()
+        evaluator = EvaluatorV2(data, m, config)
+        run = evaluator.eval()
         run = update_run(run, train_time_start, train_time_finish, m.epochs_trained)
 
         runs_list.append(run)
@@ -97,7 +100,7 @@ def main():
     datasets = ['metabric', 'support', 'seer']
     # datasets = ['metabric', 'support']
     models = ['CPH', 'DeepHit', 'DeepSurv', 'PCHazard', 'RSF']
-    # models = ['DeepHit']
+    models = ['DeepSurv']
 
     for model_name in models:
         for dataset_name in datasets:
