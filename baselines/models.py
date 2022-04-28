@@ -108,21 +108,20 @@ class DeepHitSingleEvent:
         return log
 
 
-class DeepSurv:
+class DeepSurv(BasePycox):
     def __init__(self, config):
-        self.batch_size = config.batch_size
-        self.epochs = config.epochs
+        super().__init__(config)
         config.out_feature = 1   # need to overwrite value set in load_data
         net = simple_dln(config)
 
         # initialize model
         self.model = CoxPH(net, tt.optim.Adam)
         self.model.optimizer.set_lr(config.learning_rate)
-        self.callbacks = [tt.callbacks.EarlyStopping(patience=20)]
 
+    # overwrite train method
     def train(self, data):
-        log = self.model.fit(data.x_train, data.y_train, self.batch_size, self.epochs, self.callbacks, verbose=True, val_data=data.val_data)
-        return log
+        self.log = self.model.fit(data.x_train, data.y_train, self.batch_size, self.epochs, self.callbacks, verbose=True, val_data=data.val_data)
+        self.epochs_trained = self.log.epoch
 
 
 class PCHazard(BasePycox):

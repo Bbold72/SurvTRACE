@@ -3,7 +3,7 @@ import time
 from baselines import configurations
 from baselines.data_class import Data
 from baselines.evaluator import EvaluatorCPH, EvaluatorRSF, EvaluatorSingle
-from baselines.models import CPH, PCHazard, RSF
+from baselines.models import CPH, DeepSurv, PCHazard, RSF
 from baselines.utils import export_results, update_run
 
 
@@ -39,6 +39,9 @@ def run_experiment(dataset_name, model_name, num_runs=10, event_to_censor=None):
     if config.model == 'CPH':
         Model = CPH
         Evaluator = EvaluatorCPH
+    elif config.model == 'DeepSurv':
+        Model = DeepSurv
+        Evaluator = EvaluatorSingle
     elif config.model == 'PCHazard':
         Model = PCHazard
         Evaluator = EvaluatorSingle
@@ -76,13 +79,13 @@ def run_experiment(dataset_name, model_name, num_runs=10, event_to_censor=None):
 
 def main():
     # models that require an event to be censored for competing events
-    cause_specific_models = set(['CPH', 'PCHazard', 'RSF'])  
+    cause_specific_models = set(['CPH', 'DeepSurv', 'PCHazard', 'RSF'])  
     number_runs = 1
 
     datasets = ['metabric', 'support', 'seer']
     # datasets = ['metabric', 'support']
-    models = ['CPH', 'PCHazard', 'RSF']
-    models = ['RSF']
+    models = ['CPH', 'DeepSurv', 'PCHazard', 'RSF']
+    models = ['DeepSurv']
 
     for dataset_name in datasets:
         for model_name in models:
