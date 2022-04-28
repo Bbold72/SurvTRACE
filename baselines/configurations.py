@@ -61,6 +61,42 @@ DeepHit_seer = EasyDict({
 })
 
 
+########################## DeepSurv ##########################
+
+### Metabric ###
+DeepSurv_metabric = EasyDict({
+    'data': 'metabric',
+    'horizons': [.25, .5, .75],
+    'batch_size': 64,
+    'learning_rate': 0.01,
+    'epochs': 100,
+    'hidden_size': 32,
+    'dropout': 0.1
+})
+
+### SUPPORT ###
+DeepSurv_support = EasyDict({
+    'data': 'support',
+    'horizons': [.25, .5, .75],
+    'batch_size': 128,
+    'learning_rate': 0.01,
+    'epochs': 100,
+    'hidden_size': 32,
+    'dropout': 0.1
+})
+
+### SEER ###
+DeepSurv_seer = EasyDict({
+    'data': 'seer',
+    'horizons': [.25, .5, .75],
+    'batch_size': 128,
+    'learning_rate': 0.01,
+    'epochs': 100,
+    'hidden_size': 32,
+    'dropout': 0.1,
+})
+
+
 ########################## Deep Survival Machines ##########################
 
 ### Metabric ###
