@@ -10,51 +10,19 @@ from baselines.data_class import Data
 from baselines.models import simple_dln, CauseSpecificNet
 from baselines.evaluator import EvaluatorSingle, EvaluatorCompeting
 from baselines.utils import export_results, update_run
+from baselines import configurations
 
 
-num_runs = 1
+num_runs = 10
 datasets = ['metabric', 'support', 'seer']
+model_name = 'DeepHit'
 
-# define the setup parameters
-config_metabric = EasyDict({
-    'data': 'metabric',
-    'horizons': [.25, .5, .75],
-    'batch_size': 64,
-    'learning_rate': 0.01,
-    'epochs': 1,
-    'hidden_size': 32,
-    'dropout': 0.1
-})
-config_support = EasyDict({
-    'data': 'support',
-    'horizons': [.25, .5, .75],
-    'batch_size': 128,
-    'learning_rate': 0.01,
-    'epochs': 1,
-    'hidden_size': 32,
-    'dropout': 0.1
-})
-config_seer = EasyDict({
-    'data': 'seer',
-    'horizons': [.25, .5, .75],
-    'batch_size': 1024,
-    'learning_rate': 0.01,
-    'epochs': 1,
-    'hidden_size_indiv': 32,
-    'hidden_size_shared': 64,
-    'dropout': 0.1
-})
-config_dic = {
-    'metabric': config_metabric,
-    'support': config_support,
-    'seer': config_seer
-}
 
 for dataset_name in datasets:
-    print('Running DeepHit on ' + dataset_name)
-
-    config = config_dic[dataset_name]
-    config.model = 'DeepHit'
+    config = getattr(configurations, f'{model_name}_{dataset_name}')
+    config.model = model_name
+    print(f'Running {config.model} on {dataset_name}')
+    print(config)
 
     # store each run in list
     runs_list = []

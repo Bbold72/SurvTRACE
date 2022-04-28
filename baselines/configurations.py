@@ -24,6 +24,43 @@ CPH_seer = EasyDict({
 })
 
 
+########################## DeepHit ##########################
+
+### Metabric ###
+DeepHit_metabric = EasyDict({
+    'data': 'metabric',
+    'horizons': [.25, .5, .75],
+    'batch_size': 64,
+    'learning_rate': 0.01,
+    'epochs': 100,
+    'hidden_size': 32,
+    'dropout': 0.1
+})
+
+### SUPPORT ###
+DeepHit_support = EasyDict({
+    'data': 'support',
+    'horizons': [.25, .5, .75],
+    'batch_size': 128,
+    'learning_rate': 0.01,
+    'epochs': 100,
+    'hidden_size': 32,
+    'dropout': 0.1
+})
+
+### SEER ###
+DeepHit_seer = EasyDict({
+    'data': 'seer',
+    'horizons': [.25, .5, .75],
+    'batch_size': 1024,
+    'learning_rate': 0.01,
+    'epochs': 100,
+    'hidden_size_indiv': 32,
+    'hidden_size_shared': 64,
+    'dropout': 0.1
+})
+
+
 ########################## Deep Survival Machines ##########################
 
 ### Metabric ###
