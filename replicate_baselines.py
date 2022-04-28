@@ -67,6 +67,7 @@ def run_experiment(dataset_name: str, model_name: str, num_runs=10, event_to_cen
     elif config.model == 'RSF':
         Model = RSF
         Evaluator = EvaluatorRSF
+        EvaluatorV2 = EvaluatorSingleV2
     else:
         raise('Wrong model name provided')
 
@@ -110,7 +111,7 @@ def main():
     datasets = ['metabric', 'support', 'seer']
     # datasets = ['metabric', 'support']
     models = ['CPH', 'DeepHit', 'DeepSurv', 'DSM', 'PCHazard', 'RSF']
-    models = ['CPH']
+    models = ['RSF']
 
     for model_name in models:
         for dataset_name in datasets:
