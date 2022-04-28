@@ -1,12 +1,10 @@
-from easydict import EasyDict
 import time
-
-from sksurv.ensemble import RandomSurvivalForest
 
 from baselines.data_class import Data
 from baselines.evaluator import EvaluatorRSF
-from baselines.utils import export_results, update_run, df_to_event_time_array
+from baselines.utils import export_results, update_run
 from baselines import configurations
+from baselines.models import RSF
 
 
 num_runs = 10
@@ -51,15 +49,11 @@ for dataset_name in datasets:
         data = Data(config, censor_event)
         
         # initialize model
-        RSF = RandomSurvivalForest(n_estimators=config.epochs, 
-                                    verbose=1,
-                                    max_depth=4,
-                                    n_jobs=-1
-                                    )
+        model = RSF(config)
 
         # train model
         train_time_start = time.time()
-        model = RSF.fit(data.x_train, data.y_et_train)
+        model = model.train(data)
         train_time_finish = time.time()        
 
         # calcuate metrics
