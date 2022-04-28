@@ -1,6 +1,7 @@
 from easydict import EasyDict
 
 
+
 ########################## Cox Proportional Hazards ##########################
 
 ### Metabric ###
@@ -193,4 +194,28 @@ PCHazard_seer = EasyDict({
     'epochs': 100,
     'hidden_size': 32,
     'dropout': 0.1,
+})
+
+
+########################## Random Survival Forests ##########################
+
+### Metabric ###
+RSF_metabric = EasyDict({
+    'data': 'metabric',
+    'horizons': [.25, .5, .75],
+    'epochs': 100
+})
+
+### SUPPORT ###
+RSF_support = EasyDict({
+    'data': 'support',
+    'horizons': [.25, .5, .75],
+    'epochs': 100
+})
+
+### SEER ###
+RSF_seer = EasyDict({
+    'data': 'seer',
+    'horizons': [.25, .5, .75],
+    'epochs': 100,
 })

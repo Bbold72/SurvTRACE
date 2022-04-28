@@ -6,6 +6,7 @@ from sksurv.ensemble import RandomSurvivalForest
 from baselines.data_class import Data
 from baselines.evaluator import EvaluatorRSF
 from baselines.utils import export_results, update_run, df_to_event_time_array
+from baselines import configurations
 
 
 num_runs = 10
@@ -13,46 +14,26 @@ datasets = ['metabric', 'support', ('seer', 'event_0'), ('seer', 'event_1')]
 # datasets = ['metabric', 'support']
 # # datasets = [('seer', 'event_0'), ('seer', 'event_1')]
 # datasets = [('seer', 'event_1')]
-
-# define the setup parameters
-config_metabric = EasyDict({
-    'data': 'metabric',
-    'horizons': [.25, .5, .75],
-    'epochs': 100
-})
-config_support = EasyDict({
-    'data': 'support',
-    'horizons': [.25, .5, .75],
-    'epochs': 100
-})
-config_seer = EasyDict({
-    'data': 'seer',
-    'horizons': [.25, .5, .75],
-    'epochs': 100,
-    # event_0: Breast Cancer 
-    # event_1: Heart Disease
-    'event_to_censor': 'event_0'
-})
-config_dic = {
-    'metabric': config_metabric,
-    'support': config_support,
-    'seer': config_seer
-}
+model_name = 'RSF'
 
 for dataset_name in datasets:
-
     if type(dataset_name) == tuple:
         dataset_name, event_to_censor = dataset_name
-        config_seer.event_to_censor = event_to_censor
-        event_to_keep = '0' if config_seer.event_to_censor == 'event_1' else '1'
-        config_seer.event_to_keep = 'event_' + event_to_keep
         censor_event = True
     else:
         censor_event = False
 
+    config = getattr(configurations, f'{model_name}_{dataset_name}')
+    config.model = model_name
+    print(f'Running {config.model} on {dataset_name}')
+    print(config)
 
-    config = config_dic[dataset_name]
-    config.model = 'RSF'
+
+    if censor_event:
+        config.event_to_censor = event_to_censor
+        event_to_keep = '0' if config.event_to_censor == 'event_1' else '1'
+        config.event_to_keep = 'event_' + event_to_keep
+
 
     try:
         event_name = '-' + config.event_to_keep
