@@ -9,6 +9,7 @@ from sksurv.ensemble import RandomSurvivalForest
 
 from baselines.dlns import simple_dln, CauseSpecificNet
 
+# TODO: add Deep Survival Machines to models
 
 class BaseModel:
 
@@ -39,20 +40,25 @@ class BasePycox(BaseModel):
                             )
         self.epochs_trained = self.log.epoch
 
-class CPH(BaseModel):
 
+class BaseSksurv(BaseModel):
     def __init__(self, config):
         super().__init__()
-        self.model = CoxPHSurvivalAnalysis(n_iter=config.epochs, verbose=1)
 
         # TODO: there doesn't seem to be a good way to get out how many epochs actually ran
         self.epochs_trained = config.epochs
 
     def train(self, data):
-        self.model.fit(data.x_train, data.y_et_train)
+        self.model.fit(data.x_train, data.y_et_train) 
+
+
+class CPH(BaseSksurv):
+
+    def __init__(self, config):
+        super().__init__(config)
+        self.model = CoxPHSurvivalAnalysis(n_iter=config.epochs, verbose=1)
+
   
-
-
 class DeepHitCompeting:
 
     def __init__(self, config):
@@ -133,15 +139,12 @@ class PCHazard(BasePycox):
 
 
 
-class RSF:
+class RSF(BaseSksurv):
 
     def __init__(self, config):
-
+        super().__init__(config)
         self.model = RandomSurvivalForest(n_estimators=config.epochs, 
                                             verbose=1,
                                             max_depth=4,
                                             n_jobs=-1
                                             )
-
-    def train(self, data):
-        self.model.fit(data.x_train, data.y_et_train)
