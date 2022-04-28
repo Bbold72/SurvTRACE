@@ -46,9 +46,9 @@ class BasePycox(BaseModel):
                             )
         self.epochs_trained = self.log.epoch
 
-
     def calc_survival(self, x_data):
         return self.model.predict_surv(x_data)
+
 
 class BaseSksurv(BaseModel):
     def __init__(self, config):
@@ -156,6 +156,7 @@ class PCHazard(BasePycox):
 
     def __init__(self, config):
         super().__init__(config)
+        self.eval_offset = 1
 
         # define neural network
         net = simple_dln(config)

@@ -62,6 +62,7 @@ def run_experiment(dataset_name: str, model_name: str, num_runs=10, event_to_cen
     elif config.model == 'PCHazard':
         Model = PCHazard
         Evaluator = EvaluatorSingle
+        EvaluatorV2 = EvaluatorSingleV2
     elif config.model == 'RSF':
         Model = RSF
         Evaluator = EvaluatorRSF
@@ -88,9 +89,11 @@ def run_experiment(dataset_name: str, model_name: str, num_runs=10, event_to_cen
         # calcuate metrics
         eval_offset=1 if config.model=='PCHazard' else 0
         evaluator = Evaluator(data, m.model, config, eval_offset)
+        print('old')
         run = evaluator.eval()
-        # evaluator = EvaluatorV2(data, m, config)
-        # run = evaluator.eval()
+        evaluator = EvaluatorV2(data, m, config)
+        print('new')
+        run = evaluator.eval()
         run = update_run(run, train_time_start, train_time_finish, m.epochs_trained)
 
         runs_list.append(run)
@@ -103,10 +106,10 @@ def main():
     cause_specific_models = set(['CPH', 'DeepSurv', 'PCHazard', 'RSF'])  
     number_runs = 1
 
-    datasets = ['support', 'seer']
+    datasets = ['metabric', 'support', 'seer']
     # datasets = ['metabric', 'support']
     models = ['CPH', 'DeepHit', 'DeepSurv', 'DSM', 'PCHazard', 'RSF']
-    models = ['DSM']
+    models = ['PCHazard']
 
     for model_name in models:
         for dataset_name in datasets:
