@@ -135,6 +135,7 @@ class DSM(BaseModel):
 
     def __init__(self, config):
         super().__init__()
+        self.eval_offset = 0
         self.epochs = config.epochs
         self.learning_rate = config.learning_rate
         self.batch_size = config.batch_size
@@ -154,8 +155,8 @@ class DSM(BaseModel):
         # TODO: find a way to get number of epochs trained
         self.epochs_trained = np.nan
     
-    def calc_survival(self, x_data):
-        return self.model.predict_survival(x_data.astype('float64'), self.times.tolist())
+    def calc_survival(self, x_data, times_list, risk=1):
+        return self.model.predict_survival(x_data.astype('float64'), times_list, risk)
 
 
 class PCHazard(BasePycox):

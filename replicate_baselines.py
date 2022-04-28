@@ -3,7 +3,7 @@ from typing import Optional
 
 from baselines import configurations
 from baselines.data_class import Data
-from baselines.evaluator import EvaluatorCPH, EvaluatorRSF, EvaluatorSingle, EvaluatorCompeting, EvaluatorSingleV2,  EvaluatorSingleDSM, EvaluatorCompetingDSM
+from baselines.evaluator import EvaluatorCPH, EvaluatorRSF, EvaluatorSingle, EvaluatorCompeting, EvaluatorCompetingV2, EvaluatorSingleV2,  EvaluatorSingleDSM, EvaluatorCompetingDSM
 from baselines.models import CPH, DeepHitSingleEvent, DeepHitCompeting, DeepSurv, DSM, PCHazard, RSF
 from baselines.utils import export_results, update_run
 
@@ -58,8 +58,10 @@ def run_experiment(dataset_name: str, model_name: str, num_runs=10, event_to_cen
         Model = DSM
         if config.data == 'seer':
             Evaluator = EvaluatorCompetingDSM
+            EvaluatorV2 = EvaluatorCompetingV2
         else:
             Evaluator = EvaluatorSingleDSM
+            EvaluatorV2 = EvaluatorSingleV2
     elif config.model == 'PCHazard':
         Model = PCHazard
         Evaluator = EvaluatorSingle
@@ -109,9 +111,9 @@ def main():
     number_runs = 1
 
     datasets = ['metabric', 'support', 'seer']
-    # datasets = ['metabric', 'support']
+    datasets = ['seer']
     models = ['CPH', 'DeepHit', 'DeepSurv', 'DSM', 'PCHazard', 'RSF']
-    models = ['RSF']
+    models = ['DSM']
 
     for model_name in models:
         for dataset_name in datasets:

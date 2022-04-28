@@ -1,6 +1,7 @@
 # calculate time dependent concordanane index
 
 import abc
+from cgi import test
 from collections import defaultdict
 import numpy as np
 from sksurv.metrics import concordance_index_ipcw
@@ -87,6 +88,7 @@ class EvaluatorBaseV2:
 
     def __init__(self, data, model, config, test_set: bool=True):
 
+        self.model_name = config.model
         self.model = model
         self.offset = model.eval_offset
         self.df_train_all = data.df.loc[data.df_train.index]
@@ -126,9 +128,9 @@ class EvaluatorBaseV2:
             print(f"{event_print_label}For {horizon[1]} quantile,")
             print("TD Concordance Index - IPCW:", cis[horizon[0]])
     
-    
+    @ abc.abstractclassmethod
     def calc_survival_function(self):
-        return self.model.calc_survival(self.x_eval)
+        pass
 
     def _calc_risk(self):
         surv = self.calc_survival_function()
@@ -145,15 +147,19 @@ class EvaluatorBaseV2:
 
 class EvaluatorSingleV2(EvaluatorBaseV2):
 
-    def __init__(self, data, model, config):
-        super().__init__(data, model, config)
+    def __init__(self, data, model, config, test_set=True):
+        super().__init__(data, model, config, test_set)
    
-
+    def calc_survival_function(self):
+        if self.model_name == 'DSM':
+            return self.model.calc_survival(self.x_eval.astype('float64'), self.times.tolist())
+        else:
+            return self.model.calc_survival(self.x_eval)
 
 class EvaluatorCompeting(EvaluatorBase):
 
-    def __init__(self, data, model, config, offset=0):
-        super().__init__(data, model, config, offset)
+    def __init__(self, data, model, config, offset=0, test_set=True):
+        super().__init__(data, model, config, offset, test_set)
         self.num_event = config.num_event
 
     def calc_survival_function(self):
@@ -200,8 +206,8 @@ class EvaluatorRSF(EvaluatorBase):
 
 class EvaluatorSingleDSM(EvaluatorBase):
 
-    def __init__(self, data, model, config, test_set=True):
-        super().__init__(data, model, config, test_set=test_set, offset=0)
+    def __init__(self, data, model, config, offset=0, test_set=True):
+        super().__init__(data, model, config, test_set=test_set, offset=offset)
 
     def calc_survival_function(self):
         return self.model.predict_survival(self.x_eval.astype('float64'), self.times.tolist())
@@ -209,12 +215,38 @@ class EvaluatorSingleDSM(EvaluatorBase):
 
 class EvaluatorCompetingDSM(EvaluatorBase):
 
-    def __init__(self, data, model, config, test_set=True):
-        super().__init__(data, model, config, test_set=test_set, offset=0)
+    def __init__(self, data, model, config, offset=0, test_set=True):
+        super().__init__(data, model, config, test_set=test_set, offset=offset)
         self.num_event = config.num_event
 
     def calc_survival_function(self, event_idx):
         return self.model.predict_survival(self.x_eval.astype('float64'), self.times.tolist(), risk=event_idx+1)
+
+    def _calc_risk(self, event_idx):
+        return 1 - self.calc_survival_function(event_idx)
+
+    def calc_concordance_index_ipcw(self, event_idx, event_var_name):
+        risk = self._calc_risk(event_idx)
+        event_dict_label = f'_{event_idx}'
+        event_print_label = f'Event: {event_idx} ' 
+        self._calc_concordance_index_ipcw_base(risk, event_var_name, event_dict_label, event_print_label)
+    
+    def eval(self):
+        for event_idx in range(self.num_event):
+            event_var_name = f'event_{event_idx}'
+            self.calc_concordance_index_ipcw(event_idx, event_var_name)
+        return self.metric_dict
+
+
+class EvaluatorCompetingV2(EvaluatorBaseV2):
+
+    def __init__(self, data, model, config, test_set=True):
+        super().__init__(data, model, config, test_set=test_set)
+        self.num_event = config.num_event
+
+    def calc_survival_function(self, event_idx):
+        if self.model_name == 'DSM':
+            return self.model.calc_survival(self.x_eval.astype('float64'), self.times.tolist(), risk=event_idx+1)
 
     def _calc_risk(self, event_idx):
         return 1 - self.calc_survival_function(event_idx)
