@@ -65,8 +65,14 @@ class CPH(BaseSksurv):
 
     def __init__(self, config):
         super().__init__(config)
+        self.eval_offset = 0
         self.model = CoxPHSurvivalAnalysis(n_iter=config.epochs, verbose=1)
 
+    def calc_survival(self, x_data):
+        surv = self.model.predict_survival_function(x_data)
+        surv = np.array([f.y for f in surv])
+        return surv
+  
   
 class DeepHitCompeting(BasePycox):
 

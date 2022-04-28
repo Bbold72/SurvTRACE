@@ -42,6 +42,7 @@ def run_experiment(dataset_name: str, model_name: str, num_runs=10, event_to_cen
     if config.model == 'CPH':
         Model = CPH
         Evaluator = EvaluatorCPH
+        EvaluatorV2 = EvaluatorSingleV2
     elif config.model == 'DeepHit':
         if config.data == 'seer':
             Model = DeepHitCompeting
@@ -109,7 +110,7 @@ def main():
     datasets = ['metabric', 'support', 'seer']
     # datasets = ['metabric', 'support']
     models = ['CPH', 'DeepHit', 'DeepSurv', 'DSM', 'PCHazard', 'RSF']
-    models = ['PCHazard']
+    models = ['CPH']
 
     for model_name in models:
         for dataset_name in datasets:
