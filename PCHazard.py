@@ -1,16 +1,15 @@
-from easydict import EasyDict
 import numpy as np
 import time
 
 import torchtuples as tt # Some useful functions
 
-from pycox.models import PCHazard
 
 from baselines.data_class import Data
-from baselines.models import simple_dln
+from baselines.dlns import simple_dln
 from baselines.evaluator import EvaluatorSingle
 from baselines.utils import export_results, update_run
 from baselines import configurations
+from baselines.models import PCHazard
 
 
 num_runs = 10
@@ -52,21 +51,16 @@ for dataset_name in datasets:
         # load data
         data = Data(config, censor_event)
 
-        # define neural network
-        net = simple_dln(config)
-
         # initalize model
-        model = PCHazard(net, tt.optim.Adam, duration_index=np.array(config['duration_index'], dtype='float32'))
-        model.optimizer.set_lr(config.learning_rate)
-        callbacks = [tt.callbacks.EarlyStopping(patience=20)]
+        model = PCHazard(config)
 
         # train model
         train_time_start = time.time()
-        log = model.fit(data.x_train, data.y_train, config.batch_size, config.epochs, callbacks, val_data=data.val_data)
+        log = model.train(data)
         train_time_finish = time.time()
 
         # calcuate metrics
-        evaluator = EvaluatorSingle(data, model, config)
+        evaluator = EvaluatorSingle(data, model.model, config)
         run = evaluator.eval()
         run = update_run(run, train_time_start, train_time_finish, log.epoch)
 

@@ -1,4 +1,11 @@
+import numpy as np
+import torchtuples as tt # Some useful functions
+
+from pycox.models import PCHazard as PCH
+
 from sksurv.ensemble import RandomSurvivalForest
+
+from baselines.dlns import simple_dln
 
 class RSF:
 
@@ -11,4 +18,30 @@ class RSF:
                                             )
 
     def train(self, data):
-        return self.model.fit(data.x_train, data.y_et_train)
+        self.model.fit(data.x_train, data.y_et_train)
+
+
+class PCHazard:
+
+    def __init__(self, config):
+
+        # define neural network
+        net = simple_dln(config)
+
+        # initalize model
+        self.batch_size = config.batch_size
+        self.epochs = config.epochs
+        self.model = PCH(net, tt.optim.Adam, duration_index=np.array(config['duration_index'], dtype='float32'))
+        self.model.optimizer.set_lr(config.learning_rate)
+        self.callbacks = [tt.callbacks.EarlyStopping(patience=20)]
+
+
+    def train(self, data):
+        log = self.model.fit(data.x_train, 
+                            data.y_train,
+                            self.batch_size, 
+                            self.epochs, 
+                            self.callbacks, 
+                            val_data=data.val_data
+                            )
+        return log

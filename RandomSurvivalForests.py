@@ -26,7 +26,6 @@ for dataset_name in datasets:
     print(f'Running {config.model} on {dataset_name}')
     print(config)
 
-
     if censor_event:
         config.event_to_censor = event_to_censor
         event_to_keep = '0' if config.event_to_censor == 'event_1' else '1'
@@ -53,11 +52,11 @@ for dataset_name in datasets:
 
         # train model
         train_time_start = time.time()
-        model = model.train(data)
+        model.train(data)
         train_time_finish = time.time()        
 
         # calcuate metrics
-        evaluator = EvaluatorRSF(data, model, config)
+        evaluator = EvaluatorRSF(data, model.model, config)
         run = evaluator.eval()
         run = update_run(run, train_time_start, train_time_finish, config.epochs)
         runs_list.append(run)
