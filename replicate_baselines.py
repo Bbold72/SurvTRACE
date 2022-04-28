@@ -3,7 +3,7 @@ from typing import Optional
 
 from baselines import configurations
 from baselines.data_class import Data
-from baselines.evaluator import EvaluatorCPH, EvaluatorRSF, EvaluatorSingle, EvaluatorCompeting, EvaluatorCompetingV2, EvaluatorSingleV2,  EvaluatorSingleDSM, EvaluatorCompetingDSM
+from baselines.evaluator import EvaluatorSingle, EvaluatorCompeting
 from baselines.models import CPH, DeepHitSingleEvent, DeepHitCompeting, DeepSurv, DSM, PCHazard, RSF
 from baselines.utils import export_results, update_run
 
@@ -35,45 +35,33 @@ def run_experiment(dataset_name: str, model_name: str, num_runs=10, event_to_cen
         event_name = ''
     print(f'Running {config.model}{event_name} on {dataset_name}')
 
-    config.epochs=1
+    # config.epochs=1
 
 
-    # get corresponding model and evaluator
+    # get corresponding model
     if config.model == 'CPH':
         Model = CPH
-        Evaluator = EvaluatorCPH
-        EvaluatorV2 = EvaluatorSingleV2
     elif config.model == 'DeepHit':
         if config.data == 'seer':
             Model = DeepHitCompeting
-            Evaluator = EvaluatorCompeting
-            EvaluatorV2 = EvaluatorCompetingV2
         else:
             Model = DeepHitSingleEvent
-            Evaluator = EvaluatorSingle
-            EvaluatorV2 = EvaluatorSingleV2
     elif config.model == 'DeepSurv':
         Model = DeepSurv
-        Evaluator = EvaluatorSingle
-        EvaluatorV2 = EvaluatorSingleV2
     elif config.model == 'DSM':
         Model = DSM
-        if config.data == 'seer':
-            Evaluator = EvaluatorCompetingDSM
-            EvaluatorV2 = EvaluatorCompetingV2
-        else:
-            Evaluator = EvaluatorSingleDSM
-            EvaluatorV2 = EvaluatorSingleV2
     elif config.model == 'PCHazard':
         Model = PCHazard
-        Evaluator = EvaluatorSingle
-        EvaluatorV2 = EvaluatorSingleV2
     elif config.model == 'RSF':
         Model = RSF
-        Evaluator = EvaluatorRSF
-        EvaluatorV2 = EvaluatorSingleV2
     else:
         raise('Wrong model name provided')
+
+    # get corresponding evaluator
+    if (config.model == 'DeepHit' or config.model == 'DSM') and config.data == 'seer':
+        Evaluator = EvaluatorCompeting
+    else:
+        Evaluator = EvaluatorSingle
 
     # store each run in list
     runs_list = []
@@ -93,12 +81,7 @@ def run_experiment(dataset_name: str, model_name: str, num_runs=10, event_to_cen
         train_time_finish = time.time()
 
         # calcuate metrics
-        eval_offset=1 if config.model=='PCHazard' else 0
-        evaluator = Evaluator(data, m.model, config, eval_offset)
-        print('old')
-        run = evaluator.eval()
-        evaluator = EvaluatorV2(data, m, config)
-        print('new')
+        evaluator = Evaluator(data, m, config)
         run = evaluator.eval()
         run = update_run(run, train_time_start, train_time_finish, m.epochs_trained)
 
@@ -113,8 +96,8 @@ def main():
     number_runs = 1
 
     datasets = ['metabric', 'support', 'seer']
-    datasets = ['seer']
-    models = ['CPH', 'DeepHit', 'DeepSurv', 'DSM', 'PCHazard', 'RSF']
+    # datasets = ['seer']
+    models = ['DeepHit', 'DeepSurv', 'DSM', 'PCHazard', 'RSF']
     # models = ['DSM']
 
     for model_name in models:
