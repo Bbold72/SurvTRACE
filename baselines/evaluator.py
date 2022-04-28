@@ -249,7 +249,10 @@ class EvaluatorCompetingV2(EvaluatorBaseV2):
             return self.model.calc_survival(self.x_eval.astype('float64'), self.times.tolist(), risk=event_idx+1)
 
     def _calc_risk(self, event_idx):
-        return 1 - self.calc_survival_function(event_idx)
+        if self.model_name == 'DSM':
+            return 1 - self.calc_survival_function(event_idx)
+        if self.model_name == 'DeepHit':
+            return self.model.model.predict_cif(self.x_eval)[event_idx, :, :].transpose()
 
     def calc_concordance_index_ipcw(self, event_idx, event_var_name):
         risk = self._calc_risk(event_idx)

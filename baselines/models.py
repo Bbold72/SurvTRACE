@@ -1,6 +1,6 @@
 # provides interface to instantiate and train each model used in the baselines
 
-import abc
+from abc import ABC, abstractclassmethod
 import numpy as np
 import torchtuples as tt # Some useful functions
 
@@ -14,17 +14,17 @@ from baselines.dlns import simple_dln, CauseSpecificNet
 
 # TODO: add Deep Survival Machines to models
 
-class BaseModel:
+class BaseModel(ABC):
 
     def __init__(self):
         self.epochs_trained = 0
         self.model = None
 
-    @abc.abstractclassmethod
+    @abstractclassmethod
     def train(self, data):
         pass
     
-    @abc.abstractclassmethod
+    @abstractclassmethod
     def calc_survival(self, x_data):
         pass
 
@@ -78,6 +78,7 @@ class DeepHitCompeting(BasePycox):
 
     def __init__(self, config):
         super().__init__(config)
+        self.eval_offset = 0
         net = CauseSpecificNet(config)
         optimizer = tt.optim.AdamWR(lr=0.01, 
                                         decoupled_weight_decay=0.01,
@@ -96,6 +97,7 @@ class DeepHitSingleEvent(BasePycox):
 
     def __init__(self, config):
         super().__init__(config)
+        self.eval_offset = 0
         net = simple_dln(config)
 
         # initialize model
