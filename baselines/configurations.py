@@ -1,6 +1,28 @@
 from easydict import EasyDict
 
 
+########################## Cox Proportional Hazards ##########################
+
+### Metabric ###
+CPH_metabric = EasyDict({
+    'data': 'metabric',
+    'horizons': [.25, .5, .75],
+    'epochs': 200
+})
+
+### SUPPORT ###
+CPH_support = EasyDict({
+    'data': 'support',
+    'horizons': [.25, .5, .75],
+    'epochs': 200
+})
+### SEER ###
+CPH_seer = EasyDict({
+    'data': 'seer',
+    'horizons': [.25, .5, .75],
+    'epochs': 200,
+})
+
 
 ########################## Deep Survival Machines ##########################
 
@@ -9,7 +31,7 @@ DSM_metabric = EasyDict({
     'data': 'metabric',
     'horizons': [.25, .5, .75],
     'batch_size': 64,
-    'epochs': 1,
+    'epochs': 100,
     'hyperparameters': EasyDict({
         'hidden_size': [[100, 100]],
         'k': [4],
@@ -29,7 +51,7 @@ DSM_support = EasyDict({
     'data': 'support',
     'horizons': [.25, .5, .75],
     'batch_size': 128,
-    'epochs': 1,
+    'epochs': 100,
     'hyperparameters': EasyDict({
         'hidden_size': [[100, 100]],
         'k': [4],
@@ -49,7 +71,7 @@ DSM_seer = EasyDict({
     'data': 'seer',
     'horizons': [.25, .5, .75],
     'batch_size': 1024,
-    'epochs': 1,
+    'epochs': 100,
     'hyperparameters': EasyDict({
         'hidden_size': [[100, 100]],
         'k': [4],
