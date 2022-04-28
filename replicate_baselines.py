@@ -75,7 +75,8 @@ def run_experiment(dataset_name, model_name, num_runs=10, event_to_censor=None):
         train_time_finish = time.time()
 
         # calcuate metrics
-        evaluator = Evaluator(data, m.model, config)
+        eval_offset=1 if config.model=='PCHazard' else 0
+        evaluator = Evaluator(data, m.model, config, eval_offset)
         run = evaluator.eval()
         run = update_run(run, train_time_start, train_time_finish, m.epochs_trained)
 
