@@ -115,7 +115,7 @@ def main():
     datasets = ['metabric', 'support', 'seer']
     datasets = ['seer']
     models = ['CPH', 'DeepHit', 'DeepSurv', 'DSM', 'PCHazard', 'RSF']
-    models = ['DeepHit']
+    # models = ['DSM']
 
     for model_name in models:
         for dataset_name in datasets:

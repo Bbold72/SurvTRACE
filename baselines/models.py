@@ -24,9 +24,6 @@ class BaseModel(ABC):
     def train(self, data):
         pass
     
-    @abstractclassmethod
-    def calc_survival(self, x_data):
-        pass
 
 class BasePycox(BaseModel):
     
@@ -46,8 +43,6 @@ class BasePycox(BaseModel):
                             )
         self.epochs_trained = self.log.epoch
 
-    def calc_survival(self, x_data):
-        return self.model.predict_surv(x_data)
 
 
 class BaseSksurv(BaseModel):
@@ -68,10 +63,6 @@ class CPH(BaseSksurv):
         self.eval_offset = 0
         self.model = CoxPHSurvivalAnalysis(n_iter=config.epochs, verbose=1)
 
-    def calc_survival(self, x_data):
-        surv = self.model.predict_survival_function(x_data)
-        surv = np.array([f.y for f in surv])
-        return surv
   
 
 class DeepHitCompeting(BasePycox):
@@ -127,11 +118,6 @@ class DeepSurv(BasePycox):
         self.log = self.model.fit(data.x_train, data.y_train, self.batch_size, self.epochs, self.callbacks, verbose=True, val_data=data.val_data)
         self.epochs_trained = self.log.epoch
 
-    # overwrite train method
-    def calc_survival(self, x_data):
-        _ = self.model.compute_baseline_hazards()
-        return self.model.predict_surv(x_data)
-
 
 class DSM(BaseModel):
 
@@ -157,8 +143,6 @@ class DSM(BaseModel):
         # TODO: find a way to get number of epochs trained
         self.epochs_trained = np.nan
     
-    def calc_survival(self, x_data, times_list, risk=1):
-        return self.model.predict_survival(x_data.astype('float64'), times_list, risk)
 
 
 class PCHazard(BasePycox):
@@ -187,5 +171,3 @@ class RSF(BaseSksurv):
                                             n_jobs=-1
                                             )
 
-    def calc_survival(self, x_data):
-        return self.model.predict_survival_function(x_data)
