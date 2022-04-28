@@ -2,8 +2,8 @@ import time
 
 from baselines import configurations
 from baselines.data_class import Data
-from baselines.evaluator import EvaluatorCPH, EvaluatorRSF, EvaluatorSingle
-from baselines.models import CPH, DeepSurv, PCHazard, RSF
+from baselines.evaluator import EvaluatorCPH, EvaluatorRSF, EvaluatorSingle, EvaluatorCompeting
+from baselines.models import CPH, DeepHitSingleEvent, DeepHitCompeting, DeepSurv, PCHazard, RSF
 from baselines.utils import export_results, update_run
 
 
@@ -17,7 +17,6 @@ def run_experiment(dataset_name, model_name, num_runs=10, event_to_censor=None):
     # intialize configuration
     config = getattr(configurations, f'{model_name}_{dataset_name}')
     config.model = model_name
-    print(config)
 
 
     # add event to censor and to keep into config
@@ -39,6 +38,13 @@ def run_experiment(dataset_name, model_name, num_runs=10, event_to_censor=None):
     if config.model == 'CPH':
         Model = CPH
         Evaluator = EvaluatorCPH
+    elif config.model == 'DeepHit':
+        if config.data == 'seer':
+            Model = DeepHitCompeting
+            Evaluator = EvaluatorCompeting
+        else:
+            Model = DeepHitSingleEvent
+            Evaluator = EvaluatorSingle
     elif config.model == 'DeepSurv':
         Model = DeepSurv
         Evaluator = EvaluatorSingle
@@ -58,6 +64,7 @@ def run_experiment(dataset_name, model_name, num_runs=10, event_to_censor=None):
 
         # load data
         data = Data(config, censor_event)
+        print(config)
 
         # initalize model
         m = Model(config)
@@ -84,8 +91,8 @@ def main():
 
     datasets = ['metabric', 'support', 'seer']
     # datasets = ['metabric', 'support']
-    models = ['CPH', 'DeepSurv', 'PCHazard', 'RSF']
-    models = ['DeepSurv']
+    models = ['CPH', 'DeepHit', 'DeepSurv', 'PCHazard', 'RSF']
+    models = ['DeepHit']
 
     for dataset_name in datasets:
         for model_name in models:
