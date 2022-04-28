@@ -3,8 +3,8 @@ from typing import Optional
 
 from baselines import configurations
 from baselines.data_class import Data
-from baselines.evaluator import EvaluatorCPH, EvaluatorRSF, EvaluatorSingle, EvaluatorCompeting, EvaluatorSingleV2
-from baselines.models import CPH, DeepHitSingleEvent, DeepHitCompeting, DeepSurv, PCHazard, RSF
+from baselines.evaluator import EvaluatorCPH, EvaluatorRSF, EvaluatorSingle, EvaluatorCompeting, EvaluatorSingleV2,  EvaluatorSingleDSM, EvaluatorCompetingDSM
+from baselines.models import CPH, DeepHitSingleEvent, DeepHitCompeting, DeepSurv, DSM, PCHazard, RSF
 from baselines.utils import export_results, update_run
 
 
@@ -53,6 +53,12 @@ def run_experiment(dataset_name: str, model_name: str, num_runs=10, event_to_cen
         Model = DeepSurv
         Evaluator = EvaluatorSingle
         EvaluatorV2 = EvaluatorSingleV2
+    elif config.model == 'DSM':
+        Model = DSM
+        if config.data == 'seer':
+            Evaluator = EvaluatorCompetingDSM
+        else:
+            Evaluator = EvaluatorSingleDSM
     elif config.model == 'PCHazard':
         Model = PCHazard
         Evaluator = EvaluatorSingle
@@ -83,8 +89,8 @@ def run_experiment(dataset_name: str, model_name: str, num_runs=10, event_to_cen
         eval_offset=1 if config.model=='PCHazard' else 0
         evaluator = Evaluator(data, m.model, config, eval_offset)
         run = evaluator.eval()
-        evaluator = EvaluatorV2(data, m, config)
-        run = evaluator.eval()
+        # evaluator = EvaluatorV2(data, m, config)
+        # run = evaluator.eval()
         run = update_run(run, train_time_start, train_time_finish, m.epochs_trained)
 
         runs_list.append(run)
@@ -97,10 +103,10 @@ def main():
     cause_specific_models = set(['CPH', 'DeepSurv', 'PCHazard', 'RSF'])  
     number_runs = 1
 
-    datasets = ['metabric', 'support', 'seer']
+    datasets = ['support', 'seer']
     # datasets = ['metabric', 'support']
-    models = ['CPH', 'DeepHit', 'DeepSurv', 'PCHazard', 'RSF']
-    models = ['DeepSurv']
+    models = ['CPH', 'DeepHit', 'DeepSurv', 'DSM', 'PCHazard', 'RSF']
+    models = ['DSM']
 
     for model_name in models:
         for dataset_name in datasets:

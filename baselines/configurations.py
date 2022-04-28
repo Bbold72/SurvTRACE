@@ -110,19 +110,13 @@ DSM_metabric = EasyDict({
     'horizons': horizons,
     'batch_size': batch_size_metabric,
     'epochs': 100,
-    'hyperparameters': EasyDict({
-        'hidden_size': [[100, 100]],
-        'k': [4],
-        'distribution': ['Weibull'],
-        'learning_rate': [1e-3],
-        'discount': [0.5]
-        # 'hidden_size': [[50], [50, 50], [100], [100, 100]],
-        # 'k': [4, 6, 8],
-        # 'distribution': ['LogNormal', 'Weibull'],
-        # 'learning_rate': [1e-3, 1e-4],
-        # 'discount': [0.5, 0.75, 1]
+    'hidden_size': [100, 100],
+    'k': 4,
+    'distribution': 'Weibull',
+    'learning_rate': 1e-3,
+    'discount': 0.5
     })
-})
+
 
 ### SUPPORT ###
 DSM_support = EasyDict({
@@ -130,19 +124,13 @@ DSM_support = EasyDict({
     'horizons': horizons,
     'batch_size': batch_size_support,
     'epochs': 100,
-    'hyperparameters': EasyDict({
-        'hidden_size': [[100, 100]],
-        'k': [4],
-        'distribution': ['Weibull'],
-        'learning_rate': [1e-3],
-        'discount': [0.5]
-        # 'hidden_size': [[50], [50, 50], [100], [100, 100]],
-        # 'k': [4, 6, 8],
-        # 'distribution': ['LogNormal', 'Weibull'],
-        # 'learning_rate': [1e-3, 1e-4],
-        # 'discount': [0.5, 0.75, 1]
+    'hidden_size': [100, 100],
+    'k': 4,
+    'distribution': 'Weibull',
+    'learning_rate': 1e-3,
+    'discount': 0.5
     })
-})
+
 
 ### SEER ###
 DSM_seer = EasyDict({
@@ -150,19 +138,13 @@ DSM_seer = EasyDict({
     'horizons': horizons,
     'batch_size': batch_size_seer,
     'epochs': 100,
-    'hyperparameters': EasyDict({
-        'hidden_size': [[100, 100]],
-        'k': [4],
-        'distribution': ['Weibull'],
-        'learning_rate': [1e-4],
-        'discount': [0.5]
-        # 'hidden_size': [[50], [50, 50], [100], [100, 100]],
-        # 'k': [4, 6, 8],
-        # 'distribution': ['LogNormal', 'Weibull'],
-        # 'learning_rate': [1e-3, 1e-4],
-        # 'discount': [0.5, 0.75, 1]
+    'hidden_size': [100, 100],
+    'k': 4,
+    'distribution': 'Weibull',
+    'learning_rate': 1e-4,
+    'discount': 0.5
     })
-})
+
 
 
 ########################## PC-Hazard ##########################

@@ -4,6 +4,7 @@ import abc
 import numpy as np
 import torchtuples as tt # Some useful functions
 
+from auton_survival.models.dsm import DeepSurvivalMachines
 from sksurv.linear_model import CoxPHSurvivalAnalysis
 from pycox.models import CoxPH, DeepHitSingle, DeepHit
 from pycox.models import PCHazard as PCH
@@ -122,6 +123,33 @@ class DeepSurv(BasePycox):
     def calc_survival(self, x_data):
         _ = self.model.compute_baseline_hazards()
         return self.model.predict_surv(x_data)
+
+
+class DSM(BaseModel):
+
+    def __init__(self, config):
+        super().__init__()
+        self.epochs = config.epochs
+        self.learning_rate = config.learning_rate
+        self.batch_size = config.batch_size
+
+        self.model = DeepSurvivalMachines(k=config['k'],
+                                    distribution=config['distribution'],
+                                    layers=config['hidden_size']
+                                    )
+    def train(self, data):
+        self.model.fit(data.x_train, data.train_times, data.train_outcomes, 
+                    val_data=(data.x_val, data.val_times, data.val_outcomes), 
+                    iters=self.epochs, 
+                    learning_rate=self.learning_rate,
+                    batch_size=self.batch_size
+                    )
+        
+        # TODO: find a way to get number of epochs trained
+        self.epochs_trained = np.nan
+    
+    def calc_survival(self, x_data):
+        return self.model.predict_survival(x_data.astype('float64'), self.times.tolist())
 
 
 class PCHazard(BasePycox):
