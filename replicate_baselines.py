@@ -1,10 +1,13 @@
 import time
 
 from baselines.data_class import Data
-from baselines.evaluator import EvaluatorSingle
+from baselines.evaluator import EvaluatorCPH, EvaluatorSingle
 from baselines.utils import export_results, update_run
 from baselines import configurations
-from baselines.models import PCHazard
+from baselines.models import CPH, PCHazard
+
+
+
 
 
 
@@ -16,6 +19,8 @@ def run_experiment(dataset_name, model_name, num_runs=10, event_to_censor=None):
     # intialize configuration
     config = getattr(configurations, f'{model_name}_{dataset_name}')
     config.model = model_name
+    print(config)
+
 
     # add event to censor and to keep into config
     if censor_event:
@@ -30,26 +35,37 @@ def run_experiment(dataset_name, model_name, num_runs=10, event_to_censor=None):
     config.epochs=1
     print(f'Running {config.model}{event_name} on {dataset_name}')
 
+
+    # get corresponding model and evaluator
+    if config.model == 'CPH':
+        Model = CPH
+        Evaluator = EvaluatorCPH
+    elif config.model == 'PCHazard':
+        Model = PCHazard
+        Evaluator = EvaluatorSingle
+    else:
+        raise('Wrong model name provided')
+
     # store each run in list
     runs_list = []
-
     for i in range(num_runs):
 
         # load data
         data = Data(config, censor_event)
 
         # initalize model
-        m = PCHazard(config)
+        m = Model(config)
 
         # train model
         train_time_start = time.time()
-        log = m.train(data)
+        m.train(data)
         train_time_finish = time.time()
 
         # calcuate metrics
-        evaluator = EvaluatorSingle(data, m.model, config)
+        evaluator = Evaluator(data, m.model, config)
         run = evaluator.eval()
-        run = update_run(run, train_time_start, train_time_finish, log.epoch)
+        print(m.epochs_trained)
+        run = update_run(run, train_time_start, train_time_finish, m.epochs_trained)
 
         runs_list.append(run)
 
@@ -57,10 +73,13 @@ def run_experiment(dataset_name, model_name, num_runs=10, event_to_censor=None):
 
 
 def main():
-    cause_specific_models = set(['PCHazard'])
+    # models that require an event to be censored for competing events
+    cause_specific_models = set(['CPH', 'PCHazard'])  
     number_runs = 1
+
     datasets = ['metabric', 'support', 'seer']
     # datasets = ['metabric', 'support']
+    models = ['CPH', 'PCHazard']
     models = ['PCHazard']
 
     for dataset_name in datasets:
