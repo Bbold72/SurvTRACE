@@ -1,3 +1,5 @@
+# provides interface to instantiate and train each model used in the baselines
+
 import abc
 import numpy as np
 import torchtuples as tt # Some useful functions

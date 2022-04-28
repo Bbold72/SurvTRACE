@@ -1,3 +1,5 @@
+# deep neural networks that are passed to some models from pycox
+
 import torch 
 import torchtuples as tt # Some useful functions
 

@@ -1,3 +1,4 @@
+# loads, processes data, and splits into train, validation, and test sets
 import numpy as np
 from survtrace.dataset import load_data
 

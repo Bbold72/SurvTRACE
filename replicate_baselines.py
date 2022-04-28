@@ -1,4 +1,5 @@
 import time
+from typing import Optional
 
 from baselines import configurations
 from baselines.data_class import Data
@@ -8,9 +9,12 @@ from baselines.utils import export_results, update_run
 
 
 
-
-def run_experiment(dataset_name, model_name, num_runs=10, event_to_censor=None):
-
+# TODO: add Deep Survival Machines
+# TODO: add hyperparameter tuning if time permits
+def run_experiment(dataset_name: str, model_name: str, num_runs=10, event_to_censor: Optional[str]=None):
+    '''
+    trains the model on the given dataset 
+    '''
     censor_event = True if event_to_censor else False
     print('Censoring event:', censor_event)
     
@@ -31,7 +35,7 @@ def run_experiment(dataset_name, model_name, num_runs=10, event_to_censor=None):
         event_name = ''
     print(f'Running {config.model}{event_name} on {dataset_name}')
 
-    config.epochs=1
+    # config.epochs=1
 
 
     # get corresponding model and evaluator
@@ -64,7 +68,7 @@ def run_experiment(dataset_name, model_name, num_runs=10, event_to_censor=None):
 
         # load data
         data = Data(config, censor_event)
-        print(config)
+        # print(config)
 
         # initalize model
         m = Model(config)
@@ -93,10 +97,10 @@ def main():
     datasets = ['metabric', 'support', 'seer']
     # datasets = ['metabric', 'support']
     models = ['CPH', 'DeepHit', 'DeepSurv', 'PCHazard', 'RSF']
-    models = ['DeepHit']
+    # models = ['DeepHit']
 
-    for dataset_name in datasets:
-        for model_name in models:
+    for model_name in models:
+        for dataset_name in datasets:
             if dataset_name == 'seer' and model_name in cause_specific_models:
                 run_experiment(dataset_name, model_name, number_runs, event_to_censor='event_0')
                 run_experiment(dataset_name, model_name, number_runs, event_to_censor='event_1')

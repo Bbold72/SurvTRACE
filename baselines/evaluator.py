@@ -1,13 +1,19 @@
+# calculate time dependent concordanane index
+
 import abc
-from cgi import test
 from collections import defaultdict
 import numpy as np
 from sksurv.metrics import concordance_index_ipcw
 from baselines.utils import df_to_event_time_array
 
+
+# TODO: have model parameter accept model class from baselines.models
+# probably need to add a method in baselines.models to calculate survival functions
+# then could likely reduce the number of evaluator classes since would not need to
+# overwrite calc_survival_function
 class EvaluatorBase:
 
-    def __init__(self, data, model, config, offset, test_set=True):
+    def __init__(self, data, model, config, offset: int, test_set: bool=True):
 
         self.model = model
         self.offset = offset
