@@ -158,3 +158,39 @@ DSM_seer = EasyDict({
         # 'discount': [0.5, 0.75, 1]
     })
 })
+
+
+########################## PC-Hazard ##########################
+
+### Metabric ###
+PCHazard_metabric = EasyDict({
+    'data': 'metabric',
+    'horizons': [.25, .5, .75],
+    'batch_size': 64,
+    'learning_rate': 0.01,
+    'epochs': 100,
+    'hidden_size': 32,
+    'dropout': 0.1
+})
+
+### SUPPORT ###
+PCHazard_support = EasyDict({
+    'data': 'support',
+    'horizons': [.25, .5, .75],
+    'batch_size': 128,
+    'learning_rate': 0.01,
+    'epochs': 100,
+    'hidden_size': 32,
+    'dropout': 0.1
+})
+
+### SEER ###
+PCHazard_seer = EasyDict({
+    'data': 'seer',
+    'horizons': [.25, .5, .75],
+    'batch_size': 1024,
+    'learning_rate': 0.01,
+    'epochs': 100,
+    'hidden_size': 32,
+    'dropout': 0.1,
+})
