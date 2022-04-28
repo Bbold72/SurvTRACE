@@ -2,7 +2,7 @@ import numpy as np
 import torchtuples as tt # Some useful functions
 
 from sksurv.linear_model import CoxPHSurvivalAnalysis
-from pycox.models import DeepHitSingle, DeepHit
+from pycox.models import CoxPH, DeepHitSingle, DeepHit
 from pycox.models import PCHazard as PCH
 from sksurv.ensemble import RandomSurvivalForest
 
@@ -34,7 +34,8 @@ class DeepHitCompeting:
         self.callbacks = [tt.callbacks.EarlyStopping(patience=20)]
 
         # initialize model
-        self.model = DeepHit(net, optimizer, 
+        self.model = DeepHit(net, 
+                        optimizer, 
                         alpha=0.2, 
                         sigma=0.1,
                         duration_index=config.duration_index
@@ -65,6 +66,23 @@ class DeepHitSingleEvent:
         
     def train(self, data):
         log = self.model.fit(data.x_train, data.y_train, self.batch_size, self.epochs, self.callbacks, val_data=data.val_data)
+        return log
+
+
+class DeepSurv:
+    def __init__(self, config):
+        self.batch_size = config.batch_size
+        self.epochs = config.epochs
+        config.out_feature = 1   # need to overwrite value set in load_data
+        net = simple_dln(config)
+
+        # initialize model
+        self.model = CoxPH(net, tt.optim.Adam)
+        self.model.optimizer.set_lr(config.learning_rate)
+        self.callbacks = [tt.callbacks.EarlyStopping(patience=20)]
+
+    def train(self, data):
+        log = self.model.fit(data.x_train, data.y_train, self.batch_size, self.epochs, self.callbacks, verbose=True, val_data=data.val_data)
         return log
 
 
