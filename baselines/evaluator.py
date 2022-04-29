@@ -70,6 +70,12 @@ class EvaluatorSingle(EvaluatorBase):
     def __init__(self, data, model, config, test_set=True):
         super().__init__(data, model, config, test_set)
    
+    # TODO: move to baselinse.models
+    #   ideally it would be nice to have a generic interface for calculating risk in baselines.models 
+    #   like the train method. This may requrie additional refactor of evaluators and models to make that work
+    # Note: self.model.model.{function}:
+    #   - first model references a class from baselines.models
+    #   - second model references a model from pycox, sksurv, DSM
     def _calc_risk(self):
         if self.model_name == 'DSM':
             return 1 - self.model.model.predict_survival(self.x_eval.astype('float64'), self.times.tolist())
@@ -86,6 +92,12 @@ class EvaluatorSingle(EvaluatorBase):
             return 1 - self.model.model.predict_surv(self.x_eval)
 
 
+# TODO: move to baselinse.models
+#   ideally it would be nice to have a generic interface for calculating risk in baselines.models 
+#   like the train method. This may requrie additional refactor of evaluators and models to make that work
+# Note: self.model.model.{function}:
+#   - first model references a class from baselines.models
+#   - second model references a model from pycox, sksurv, DSM
 class EvaluatorCompeting(EvaluatorBase):
 
     def __init__(self, data, model, config, test_set=True):

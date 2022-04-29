@@ -1,5 +1,9 @@
 from easydict import EasyDict
 
+# defines various parameters for each experiment and model.
+# Note: hyperparameters depend on each model and dataset
+# naming of each dictionary: '{model name}_{dataset name}'.
+
 ################################## Globals ##################################
 horizons = [.25, .5, .75]
 batch_size_metabric = 64

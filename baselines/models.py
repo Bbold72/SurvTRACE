@@ -12,7 +12,6 @@ from sksurv.ensemble import RandomSurvivalForest
 
 from baselines.dlns import simple_dln, CauseSpecificNet
 
-# TODO: add Deep Survival Machines to models
 
 class BaseModel(ABC):
 

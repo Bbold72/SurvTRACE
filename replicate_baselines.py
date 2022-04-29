@@ -10,7 +10,41 @@ from baselines.utils import export_results, update_run
 
 def run_experiment(dataset_name: str, model_name: str, num_runs=10, event_to_censor: Optional[str]=None):
     '''
-    trains the model on the given dataset 
+    Runs baseline model experiment from beginning to end.
+
+    Loads, processes, and split data into train, validation, test dataframes.
+    These dataframes are stored in baselines.Data class.
+    If censoring data, event_to_censor will have its values turned to zero.
+    Additional post-processing to transform data into correct format for each model.
+    A model from baselines.models is instantiated and trained, and then a trained 
+    model is passed to a baselines.evaluators class to calculate the 
+    time dependent concordance index. Then results are exported to a pickle file 
+    and saved in directory 'results/'.
+
+    Models:
+        - CPH: Cox Proportional Hazards
+        - DeepHit
+        - DeepSurv
+        - DSM: Deep Survival Machines
+        - PCHazard: PC-Hazard
+        - RSF: Random Survival Forests
+
+    Args:
+        dataset_name (str): Name of dataset to use. One of ['metabric', 'support', 'seer']
+        model_name (str): Name of model/experiment to run. 
+            One of ['CPH', 'DeepHit', 'DeepSurv', 'DSM', 'PCHazard', 'RSF']
+        num_runs (int): Number of times to run experiment.
+            Default is 10 since the paper evaluates each model 10 times.
+        event_to_censor (str): Name of event to censore when running cause specific analysis on SEER
+            One of ['event_0', 'event_1', None]. Default is None.
+            Valid for these models SEER: ['CPH', 'DeepSurv', 'PCHazard', 'RSF'].
+    
+    Return:
+        Does not return a value.
+        Outputs results as a pickle file to the directory 'results/'
+        structure of results is a list of dictionaries where each element of the list is the results
+        of a run and each run contains a dictionary of metrics, total training time, number of 
+        epochs trained for, and time per epoch.
     '''
     censor_event = True if event_to_censor else False
     print('Censoring event:', censor_event)
@@ -26,6 +60,7 @@ def run_experiment(dataset_name: str, model_name: str, num_runs=10, event_to_cen
         event_to_keep = '0' if config.event_to_censor == 'event_1' else '1'
         config.event_to_keep = 'event_' + event_to_keep
     
+    # add event name if censoring
     try:
         event_name = '-' + config.event_to_keep
     except AttributeError:
@@ -94,8 +129,8 @@ def main():
 
     datasets = ['metabric', 'support', 'seer']
     # datasets = ['seer']
-    models = ['DeepHit', 'DeepSurv', 'DSM', 'PCHazard', 'RSF']
-    # models = ['DSM']
+    models = ['CPH', 'DeepHit', 'DeepSurv', 'DSM', 'PCHazard', 'RSF']
+    models = ['CPH']
 
     for model_name in models:
         for dataset_name in datasets:

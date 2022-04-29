@@ -1,12 +1,17 @@
-# loads, processes data, and splits into train, validation, and test sets
+from easydict import EasyDict
 import numpy as np
 from survtrace.dataset import load_data
 
 from baselines.utils import df_to_event_time_array
 
-class Data:
 
-    def __init__(self, config, censor_event=False):
+class Data:
+    '''
+    loads, processes data, and splits into train, validation, and test sets
+    Data is accessed through this class.
+    '''
+
+    def __init__(self, config: EasyDict, censor_event=False):
 
         # load data
         # TODO: splitting the data into train, validation, test should be separate process. Each run of each experiment
