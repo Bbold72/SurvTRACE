@@ -1,8 +1,9 @@
-# provides interface to instantiate and train each model used in the baselines
+# provides consistent interface to instantiate and train each model used in the baselines
 
 from abc import ABC, abstractclassmethod
+from easydict import EasyDict
 import numpy as np
-import torchtuples as tt # Some useful functions
+import torchtuples as tt 
 
 from auton_survival.models.dsm import DeepSurvivalMachines
 from sksurv.linear_model import CoxPHSurvivalAnalysis
@@ -11,28 +12,67 @@ from pycox.models import PCHazard as PCH
 from sksurv.ensemble import RandomSurvivalForest
 
 from baselines.dlns import simple_dln, CauseSpecificNet
-
+from baselines.data_class import Data
 
 class BaseModel(ABC):
+    '''
+    Defines interface for other classes.
 
+    Attributes:
+        - epochs_trained (int): number of epochs model trained for
+        - model: model from pycox, DSM, sksurv, or SurvTRACE.
+        - eval_offset (int): number of columns to skip in model's risk calculation.
+    '''
     def __init__(self):
         self.epochs_trained = 0
+
+        # TODO: makes these abstract attributes
         self.model = None
+        self.eval_offset = None
 
     @abstractclassmethod
-    def train(self, data):
+    def train(self):
+        '''
+        Trains self.model
+        '''
         pass
     
 
 class BasePycox(BaseModel):
+    '''
+    Defines interface for models from pycox.
     
-    def __init__(self, config):
+    Child of BaseModel.
+
+    Attributes:
+        - batch_size (int)
+        - epochs (int): number of epochs to train for
+        - callbacks (List): list of additional functionality to add to each model
+            - adds EarlyStopping where model quits training after not improving for 20 epochs
+    '''
+    def __init__(self, config: EasyDict):
+        '''
+        Args:
+            - config: configuration dictionary from baselines.configurations
+        '''
         super().__init__()
         self.batch_size = config.batch_size
         self.epochs = config.epochs
         self.callbacks = [tt.callbacks.EarlyStopping(patience=20)]
 
-    def train(self, data):
+
+    def train(self, data: Data) -> None:
+        '''
+        Trains self.model.
+
+        Args: 
+            - data: Data class from baselines.data_class
+        
+        Returns:
+            Nothing.
+            self.model is trained.
+            Updates self.epochs_trained.
+        '''
         self.log = self.model.fit(data.x_train, 
                             data.y_train,
                             self.batch_size, 
@@ -45,28 +85,68 @@ class BasePycox(BaseModel):
 
 
 class BaseSksurv(BaseModel):
-    def __init__(self, config):
+    '''
+    Defines interface for models from sksurv.
+    
+    Child of BaseModel.
+
+    Attributes:
+        - epochs (int): number of epochs to train for
+    '''
+    def __init__(self, config: EasyDict):
+        '''
+        Args:
+            - config: configuration dictionary from baselines.configurations
+        '''
         super().__init__()
+        self.epochs = config.epochs
+
+
+    def train(self, data: Data):
+        '''
+        Trains self.model.
+
+        Args: 
+            - data: Data class from baselines.data_class
+        
+        Returns:
+            Nothing.
+            self.model is trained.
+            Updates self.epochs_trained with total number of epochs from config.
+        '''
+        self.model.fit(data.x_train, data.y_et_train) 
 
         # TODO: there doesn't seem to be a good way to get out how many epochs actually ran
-        self.epochs_trained = config.epochs
-
-    def train(self, data):
-        self.model.fit(data.x_train, data.y_et_train) 
+        self.epochs_trained = self.epochs
 
 
 class CPH(BaseSksurv):
+    '''
+    Cox Proportional Hazards
 
+    Child of BaseSksurv.
+    '''
     def __init__(self, config):
+        '''
+        Args:
+            - config: configuration dictionary from baselines.configurations
+        '''
         super().__init__(config)
         self.eval_offset = 0
         self.model = CoxPHSurvivalAnalysis(n_iter=config.epochs, verbose=1)
 
   
-
 class DeepHitCompeting(BasePycox):
+    '''
+    DeepHit for competing events.
 
+    Child of BasePycox.
+    '''
     def __init__(self, config):
+        '''
+        Args:
+            - config: configuration dictionary from baselines.configurations
+        '''
         super().__init__(config)
         self.eval_offset = 0
         net = CauseSpecificNet(config)
@@ -84,8 +164,16 @@ class DeepHitCompeting(BasePycox):
             
     
 class DeepHitSingleEvent(BasePycox):
+    '''
+    DeepHit for single events.
 
+    Child of BasePycox.
+    '''
     def __init__(self, config):
+        '''
+        Args:
+            - config: configuration dictionary from baselines.configurations
+        '''
         super().__init__(config)
         self.eval_offset = 0
         net = simple_dln(config)
@@ -101,7 +189,16 @@ class DeepHitSingleEvent(BasePycox):
 
 
 class DeepSurv(BasePycox):
+    '''
+    DeepSurv.
+
+    Child of BasePycox.
+    '''
     def __init__(self, config):
+        '''
+        Args:
+            - config: configuration dictionary from baselines.configurations
+        '''
         super().__init__(config)
         self.eval_offset = 0
 
@@ -119,8 +216,16 @@ class DeepSurv(BasePycox):
 
 
 class DSM(BaseModel):
+    '''
+    Deep Survival Machines.
 
+    Child of BaseModel.
+    '''
     def __init__(self, config):
+        '''
+        Args:
+            - config: configuration dictionary from baselines.configurations
+        '''
         super().__init__()
         self.eval_offset = 0
         self.epochs = config.epochs
@@ -145,8 +250,16 @@ class DSM(BaseModel):
 
 
 class PCHazard(BasePycox):
+    '''
+    PC-Hazard.
 
+    Child of BasePycox.
+    '''
     def __init__(self, config):
+        '''
+        Args:
+            - config: configuration dictionary from baselines.configurations
+        '''
         super().__init__(config)
         self.eval_offset = 1
 
@@ -160,8 +273,16 @@ class PCHazard(BasePycox):
 
 
 class RSF(BaseSksurv):
+    '''
+    Random Survival Forests.
 
+    Child of BaseSksurv.
+    '''
     def __init__(self, config):
+        '''
+        Args:
+            - config: configuration dictionary from baselines.configurations
+        '''
         super().__init__(config)
         self.eval_offset = 0
         self.model = RandomSurvivalForest(n_estimators=config.epochs, 
