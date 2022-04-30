@@ -28,6 +28,10 @@ def run_experiment(dataset_name: str, model_name: str, num_runs=10, event_to_cen
         - DSM: Deep Survival Machines
         - PCHazard: PC-Hazard
         - RSF: Random Survival Forests
+        - SurvTRACE: SurvTRACE with MTL & IPS
+        - SurvTRACE_woMTL: SurvTRACE without MTL but with IPS
+        - SurvTRACE_woIPS: SurvTRACE with MTL but without IPS
+        - SurvTRACE_woIPS-woMTL: SurvTRACE without MTL and without IPS
 
     Args:
         dataset_name (str): Name of dataset to use. One of ['metabric', 'support', 'seer']
@@ -70,7 +74,7 @@ def run_experiment(dataset_name: str, model_name: str, num_runs=10, event_to_cen
         event_name = ''
     print(f'Running {config.model}{event_name} on {dataset_name}')
 
-    config.epochs=1
+    # config.epochs=1
 
 
     # get corresponding model
@@ -140,7 +144,7 @@ def main():
     # datasets = ['seer']
     models = ['CPH', 'DeepHit', 'DeepSurv', 'DSM', 'PCHazard', 'RSF' \
                 'SurvTRACE', 'SurvTRACE_woMTL', 'SurvTRACE_woIPS', 'SurvTRACE_woIPS-woMTL']
-    models = ['SurvTRACE', 'DeepHit', 'RSF']
+    # models = ['SurvTRACE', 'DeepHit', 'RSF']
 
     for model_name in models:
         for dataset_name in datasets:

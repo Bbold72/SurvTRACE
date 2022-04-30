@@ -1,4 +1,4 @@
-# provides consistent interface to instantiate and train each model used in the baselines
+# provides consistent interface to instantiate and train each model used in the experiments
 
 from abc import ABC, abstractclassmethod
 from easydict import EasyDict
@@ -59,7 +59,7 @@ class BasePycox(BaseModel):
     def __init__(self, config: EasyDict):
         '''
         Args:
-            - config: configuration dictionary from baselines.configurations
+            - config: configuration dictionary from experiments.configurations
         '''
         super().__init__()
         self.batch_size = config.batch_size
@@ -72,7 +72,7 @@ class BasePycox(BaseModel):
         Trains self.model.
 
         Args: 
-            - data: Data class from baselines.data_class
+            - data: Data class from experiments.data_class
         
         Returns:
             Nothing.
@@ -102,7 +102,7 @@ class BaseSksurv(BaseModel):
     def __init__(self, config: EasyDict):
         '''
         Args:
-            - config: configuration dictionary from baselines.configurations
+            - config: configuration dictionary from experiments.configurations
         '''
         super().__init__()
         self.epochs = config.epochs
@@ -113,7 +113,7 @@ class BaseSksurv(BaseModel):
         Trains self.model.
 
         Args: 
-            - data: Data class from baselines.data_class
+            - data: Data class from experiments.data_class
         
         Returns:
             Nothing.
@@ -135,7 +135,7 @@ class CPH(BaseSksurv):
     def __init__(self, config):
         '''
         Args:
-            - config: configuration dictionary from baselines.configurations
+            - config: configuration dictionary from experiments.configurations
         '''
         super().__init__(config)
         self.eval_offset = 0
@@ -151,7 +151,7 @@ class DeepHitCompeting(BasePycox):
     def __init__(self, config):
         '''
         Args:
-            - config: configuration dictionary from baselines.configurations
+            - config: configuration dictionary from experiments.configurations
         '''
         super().__init__(config)
         self.eval_offset = 0
@@ -178,7 +178,7 @@ class DeepHitSingleEvent(BasePycox):
     def __init__(self, config):
         '''
         Args:
-            - config: configuration dictionary from baselines.configurations
+            - config: configuration dictionary from experiments.configurations
         '''
         super().__init__(config)
         self.eval_offset = 0
@@ -203,7 +203,7 @@ class DeepSurv(BasePycox):
     def __init__(self, config):
         '''
         Args:
-            - config: configuration dictionary from baselines.configurations
+            - config: configuration dictionary from experiments.configurations
         '''
         super().__init__(config)
         self.eval_offset = 0
@@ -230,7 +230,7 @@ class DSM(BaseModel):
     def __init__(self, config):
         '''
         Args:
-            - config: configuration dictionary from baselines.configurations
+            - config: configuration dictionary from experiments.configurations
         '''
         super().__init__()
         self.eval_offset = 0
@@ -264,7 +264,7 @@ class PCHazard(BasePycox):
     def __init__(self, config):
         '''
         Args:
-            - config: configuration dictionary from baselines.configurations
+            - config: configuration dictionary from experiments.configurations
         '''
         super().__init__(config)
         self.eval_offset = 1
@@ -287,7 +287,7 @@ class RSF(BaseSksurv):
     def __init__(self, config):
         '''
         Args:
-            - config: configuration dictionary from baselines.configurations
+            - config: configuration dictionary from experiments.configurations
         '''
         super().__init__(config)
         self.eval_offset = 0
@@ -298,10 +298,21 @@ class RSF(BaseSksurv):
                                             )
 
 class SurvTRACE(BaseModel):
+    '''
+    Class to run SurvTRACE and its variants.
+    
+    Child of BaseModel.
+
+    Attributes:
+        - variant_name (str): name of variant
+        - hyperparameters (dictionary):
+            - contains: batch_size, weight_decay, learning_rate, epochs
+        - trainer (survtrace.Trainer clsass): trains self.model
+    '''
     def __init__(self, config):
         '''
         Args:
-            - config: configuration dictionary from baselines.configurations
+            - config: configuration dictionary from experiments.configurations
         '''
         super().__init__()
         self.eval_offset = 1
@@ -332,10 +343,22 @@ class SurvTRACE(BaseModel):
             self.model = get_model(has_mtl=True)
             metrics_list = [NLLPCHazardLoss(), BCELoss(), MSELoss()]
 
+        # initialize trainer
         self.trainer = Trainer(self.model, metrics=metrics_list)
 
 
     def train(self, data: Data):
+        '''
+        Trains self.model.
+
+        Args: 
+            - data: Data class from experiments.data_class
+        
+        Returns:
+            Nothing.
+            self.model is trained.
+            Updates self.epochs_trained with total number of epochs from config.
+        '''
         train_loss, val_loss, last_epoch = self.trainer.fit((data.df_train, data.df_y_train), 
                                                             (data.df_val, data.df_y_val), 
                                                             **self.hyperparameters
