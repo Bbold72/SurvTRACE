@@ -1,16 +1,39 @@
-# calculate time dependent concordanane index
+# calculates time dependent concordanane index
 
 import abc
 from collections import defaultdict
+from typing import Tuple
+from easydict import EasyDict
 import numpy as np
 from sksurv.metrics import concordance_index_ipcw
 from baselines.utils import df_to_event_time_array
-
+from baselines.data_class import Data
 
 class EvaluatorBase:
+    """
+    Base class that for caluculating time dependent concordance index
 
-    def __init__(self, data, model, config, test_set: bool=True):
-
+    Attributes:
+        - model_name (str): name of model evaluated on
+        - model: class from baselines.model
+        - offset: number columns to skip from the left of risk calculation
+        - df_train_all: dataframe with features and events & durations trained on
+        - x_eval: features data to evaluate on. either validation or test set
+        - df_y_eval: dataframe of events and durations to evaluate on.
+        - times: duration indexes
+        - horionzs: quantiles 
+        - metric_dict: (defaultdict): stores calculated metrics
+    """
+    def __init__(self, data: Data, model, config: EasyDict, test_set: bool=True):
+        '''
+        Args:
+            - data: class from baselines.Data
+            - model: class from baselines.models
+            - config: configuration file from baselines.configurations
+            - test_set (bool): 
+                - True: evaluate on test set
+                - False: evaluate on validation set
+        '''
         self.model_name = config.model
         self.model = model
         self.offset = model.eval_offset
@@ -29,15 +52,41 @@ class EvaluatorBase:
         self.horizons = config['horizons']
         self.metric_dict = defaultdict(list)
     
-    def _make_event_time_array(self, event_var_name):
+
+    def _make_event_time_array(self, event_var_name: str) -> Tuple[np.array, np.array]:
+        '''
+        helper function to convert training data and evaluation data
+
+        Args:
+            - event_var_name (str): variable name of event
+        
+        Returns:
+            - tuple of event time arrays
+            - Tuple[0]: training data
+            - Tuple[1]: evaluation data
+        '''
         def helper(df):
             return df_to_event_time_array(df, event_var_name=event_var_name)
         
         return helper(self.df_train_all), helper(self.df_y_eval)
 
 
-    def _calc_concordance_index_ipcw_base(self, risk, event_var_name, event_dict_label='', event_print_label=''):
+    def _calc_concordance_index_ipcw_base(self, risk, event_var_name: str, event_dict_label: str='', event_print_label: str=''):
+        '''
+        Calculates time dependent concordance index.
 
+        Use sksurv.concordance_index_ipcw.
+
+        Args:
+            - risk: array of models risk predicts for each time horizon.
+            - event_var_name (str): variable name of event.
+            - event_dict_label (str):
+            - event_print_label (str):
+
+        Return:
+            Nothing.
+            Adds each metric to attribute metric_dict.
+        '''
         et_train, et_test = self._make_event_time_array(event_var_name)
 
         cis = []
@@ -52,22 +101,44 @@ class EvaluatorBase:
             print("TD Concordance Index - IPCW:", cis[horizon[0]])
     
     
-    @ abc.abstractclassmethod
+    @abc.abstractclassmethod
     def _calc_risk(self):
+        '''
+        Calcuates risk based on provided trained model.
+        '''
         pass
 
-    def calc_concordance_index_ipcw(self, event_var_name='event'):
-        risk = self._calc_risk()
-        self._calc_concordance_index_ipcw_base(risk, event_var_name)
+    @abc.abstractclassmethod
+    def calc_concordance_index_ipcw(self):
+        '''
+        Calculates time dependent concordance index.
+        '''
+        pass
 
+    @abc.abstractclassmethod
     def eval(self):
-        self.calc_concordance_index_ipcw()
-        return self.metric_dict
+        '''
+        Calculates time dependent concordance index and return metrics.
+        '''
+        pass
         
 
 class EvaluatorSingle(EvaluatorBase):
+    """
+    Caluculating time dependent concordance index on single events.
 
-    def __init__(self, data, model, config, test_set=True):
+    Child of EvaluatorBase.
+    """
+    def __init__(self, data: Data, model, config: EasyDict, test_set: bool=True):
+        '''
+        Args:
+            - data: class from baselines.Data
+            - model: class from baselines.models
+            - config: configuration file from baselines.configurations
+            - test_set (bool): 
+                - True: evaluate on test set
+                - False: evaluate on validation set
+        '''
         super().__init__(data, model, config, test_set)
    
     # TODO: move to baselinse.models
@@ -77,6 +148,12 @@ class EvaluatorSingle(EvaluatorBase):
     #   - first model references a class from baselines.models
     #   - second model references a model from pycox, sksurv, DSM
     def _calc_risk(self):
+        '''
+        Calculates risk based on trained model provided.
+
+        Returns:
+            Array of risk per time horizon.
+        '''
         if self.model_name == 'DSM':
             return 1 - self.model.model.predict_survival(self.x_eval.astype('float64'), self.times.tolist())
         elif self.model_name == 'RSF':
@@ -92,20 +169,66 @@ class EvaluatorSingle(EvaluatorBase):
             return 1 - self.model.model.predict_surv(self.x_eval)
 
 
-# TODO: move to baselinse.models
-#   ideally it would be nice to have a generic interface for calculating risk in baselines.models 
-#   like the train method. This may requrie additional refactor of evaluators and models to make that work
-# Note: self.model.model.{function}:
-#   - first model references a class from baselines.models
-#   - second model references a model from pycox, sksurv, DSM
-class EvaluatorCompeting(EvaluatorBase):
+    def calc_concordance_index_ipcw(self, event_var_name: str='event'):
+        '''
+        Calculates time dependent concordance index.
 
-    def __init__(self, data, model, config, test_set=True):
+        Args:
+            - event_var_name (str): variable name of event.
+                - Defualt = 'event'
+
+        Return:
+            Nothing.
+            Adds each metric to attribute metric_dict.
+        '''
+        risk = self._calc_risk()
+        self._calc_concordance_index_ipcw_base(risk, event_var_name)
+
+
+    def eval(self):
+        '''
+        Calculates time dependent concordance index and return metrics.
+        '''
+        self.calc_concordance_index_ipcw()
+        return self.metric_dict
+        
+
+
+class EvaluatorCompeting(EvaluatorBase):
+    """
+    Caluculating time dependent concordance index on competing events.
+
+    Child of EvaluatorBase.
+
+    Attributes:
+        - num_event (int): number of competing events
+    """
+    def __init__(self, data: Data, model, config: EasyDict, test_set: bool=True):
+        '''
+        Args:
+            - data: class from baselines.Data
+            - model: class from baselines.models
+            - config: configuration file from baselines.configurations
+            - test_set (bool): 
+                - True: evaluate on test set
+                - False: evaluate on validation set
+        '''
         super().__init__(data, model, config, test_set=test_set)
         self.num_event = config.num_event
 
-
+    # TODO: move to baselinse.models
+    #   ideally it would be nice to have a generic interface for calculating risk in baselines.models 
+    #   like the train method. This may requrie additional refactor of evaluators and models to make that work
+    # Note: self.model.model.{function}:
+    #   - first model references a class from baselines.models
+    #   - second model references a model from pycox, sksurv, DSM
     def _calc_risk(self, event_idx):
+        '''
+        Calculates risk based on trained model provided.
+
+        Returns:
+            Array of risk per time horizon.
+        '''
         if self.model_name == 'DSM':
             return 1 - self.model.model.predict_survival(self.x_eval.astype('float64'), self.times.tolist(), risk=event_idx+1)
         elif self.model_name == 'DeepHit':
@@ -113,13 +236,29 @@ class EvaluatorCompeting(EvaluatorBase):
         else:
             raise('Model not implemented')
 
-    def calc_concordance_index_ipcw(self, event_idx, event_var_name):
+
+    def calc_concordance_index_ipcw(self, event_idx: int, event_var_name: str):
+        '''
+        Calculates time dependent concordance index.
+
+        Args:
+            - event_idx: index of competing event.
+            - event_var_name (str): variable name of event.
+
+        Return:
+            Nothing.
+            Adds each metric to attribute metric_dict.
+        '''
         risk = self._calc_risk(event_idx)
         event_dict_label = f'_{event_idx}'
         event_print_label = f'Event: {event_idx} ' 
         self._calc_concordance_index_ipcw_base(risk, event_var_name, event_dict_label, event_print_label)
     
+
     def eval(self):
+        '''
+        Calculates time dependent concordance index for each competing event and return metrics.
+        '''
         for event_idx in range(self.num_event):
             event_var_name = f'event_{event_idx}'
             self.calc_concordance_index_ipcw(event_idx, event_var_name)
