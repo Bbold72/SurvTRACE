@@ -23,6 +23,7 @@ def simple_dln(config):
     )
     return net
 
+
 class CauseSpecificNet(torch.nn.Module):
     """Network structure similar to the DeepHit paper, but without the residual
     connections (for simplicity).

@@ -2,7 +2,7 @@ from easydict import EasyDict
 import numpy as np
 from survtrace.dataset import load_data
 
-from baselines.utils import df_to_event_time_array
+from experiments.utils import df_to_event_time_array
 
 
 class Data:

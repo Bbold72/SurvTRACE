@@ -1,11 +1,11 @@
 import time
 from typing import Optional
 
-from baselines import configurations
-from baselines.data_class import Data
-from baselines.evaluator import EvaluatorSingle, EvaluatorCompeting
-from baselines.models import CPH, DeepHitSingleEvent, DeepHitCompeting, DeepSurv, DSM, PCHazard, RSF, SurvTRACE
-from baselines.utils import export_results, update_run
+from experiments import configurations
+from experiments.data_class import Data
+from experiments.evaluator import EvaluatorSingle, EvaluatorCompeting
+from experiments.models import CPH, DeepHitSingleEvent, DeepHitCompeting, DeepSurv, DSM, PCHazard, RSF, SurvTRACE
+from experiments.utils import export_results, update_run
 
 
 def run_experiment(dataset_name: str, model_name: str, num_runs=10, event_to_censor: Optional[str]=None):
@@ -70,7 +70,7 @@ def run_experiment(dataset_name: str, model_name: str, num_runs=10, event_to_cen
         event_name = ''
     print(f'Running {config.model}{event_name} on {dataset_name}')
 
-    # config.epochs=1
+    config.epochs=1
 
 
     # get corresponding model
@@ -110,7 +110,6 @@ def run_experiment(dataset_name: str, model_name: str, num_runs=10, event_to_cen
 
         # load data
         data = Data(config, censor_event)
-        # print(config)
 
         # initalize model
         m = Model(config)
@@ -141,7 +140,7 @@ def main():
     # datasets = ['seer']
     models = ['CPH', 'DeepHit', 'DeepSurv', 'DSM', 'PCHazard', 'RSF' \
                 'SurvTRACE', 'SurvTRACE_woMTL', 'SurvTRACE_woIPS', 'SurvTRACE_woIPS-woMTL']
-    # models = ['SurvTRACE_woIPS', 'SurvTRACE_woIPS-woMTL']
+    models = ['SurvTRACE', 'DeepHit', 'RSF']
 
     for model_name in models:
         for dataset_name in datasets:

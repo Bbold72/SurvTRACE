@@ -17,8 +17,8 @@ from survtrace.train_utils import Trainer
 from survtrace.losses import NLLLogistiHazardLoss, NLLPCHazardLoss
 from torch.nn import BCELoss, MSELoss
 
-from baselines.dlns import simple_dln, CauseSpecificNet
-from baselines.data_class import Data
+from experiments.dlns import simple_dln, CauseSpecificNet
+from experiments.data_class import Data
 
 class BaseModel(ABC):
     '''
