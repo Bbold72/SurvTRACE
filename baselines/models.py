@@ -11,6 +11,12 @@ from pycox.models import CoxPH, DeepHitSingle, DeepHit
 from pycox.models import PCHazard as PCH
 from sksurv.ensemble import RandomSurvivalForest
 
+from survtrace.model import SurvTraceSingle, SurvTraceMulti
+from survtrace.train_utils import Trainer
+
+from survtrace.losses import NLLLogistiHazardLoss, NLLPCHazardLoss
+from torch.nn import BCELoss, MSELoss
+
 from baselines.dlns import simple_dln, CauseSpecificNet
 from baselines.data_class import Data
 
@@ -291,3 +297,47 @@ class RSF(BaseSksurv):
                                             n_jobs=-1
                                             )
 
+class SurvTRACE(BaseModel):
+    def __init__(self, config):
+        '''
+        Args:
+            - config: configuration dictionary from baselines.configurations
+        '''
+        super().__init__()
+        self.eval_offset = 1
+        try:
+            self.variant_name = config.model.split('_')[1]
+        except IndexError:
+            self.variant_name = ''
+        self.hyperparameters = {
+            'batch_size': config.batch_size,
+            'weight_decay': config.weight_decay,
+            'learning_rate': config.learning_rate,
+            'epochs': config.epochs,
+        }
+        get_model = lambda has_mtl: SurvTraceMulti(config, has_mtl) if config.data == 'seer' else SurvTraceSingle(config, has_mtl)
+
+        # initialize a model and determine loss functions to use
+        if self.variant_name == 'woIPS-woMTL':
+            self.model = get_model(has_mtl=False)
+            metrics_list = [NLLLogistiHazardLoss(),]
+        elif self.variant_name == 'woMTL':
+            self.model = get_model(has_mtl=False)
+            metrics_list = [NLLPCHazardLoss()]
+        elif self.variant_name == 'woIPS':
+            self.model = get_model(has_mtl=True)
+            metrics_list = [NLLLogistiHazardLoss(), BCELoss(), MSELoss()]
+        # complete survtrace
+        else:
+            self.model = get_model(has_mtl=True)
+            metrics_list = [NLLPCHazardLoss(), BCELoss(), MSELoss()]
+
+        self.trainer = Trainer(self.model, metrics=metrics_list)
+
+
+    def train(self, data: Data):
+        train_loss, val_loss, last_epoch = self.trainer.fit((data.df_train, data.df_y_train), 
+                                                            (data.df_val, data.df_y_val), 
+                                                            **self.hyperparameters
+                                                            )
+        self.epochs_trained = last_epoch

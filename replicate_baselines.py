@@ -4,7 +4,7 @@ from typing import Optional
 from baselines import configurations
 from baselines.data_class import Data
 from baselines.evaluator import EvaluatorSingle, EvaluatorCompeting
-from baselines.models import CPH, DeepHitSingleEvent, DeepHitCompeting, DeepSurv, DSM, PCHazard, RSF
+from baselines.models import CPH, DeepHitSingleEvent, DeepHitCompeting, DeepSurv, DSM, PCHazard, RSF, SurvTRACE
 from baselines.utils import export_results, update_run
 
 
@@ -47,10 +47,13 @@ def run_experiment(dataset_name: str, model_name: str, num_runs=10, event_to_cen
         epochs trained for, and time per epoch.
     '''
     censor_event = True if event_to_censor else False
-    print('Censoring event:', censor_event)
     
     # intialize configuration
-    config = getattr(configurations, f'{model_name}_{dataset_name}')
+    if '_' in model_name:
+        config_model_name = model_name.split('_')[0]
+    else:
+        config_model_name = model_name
+    config = getattr(configurations, f'{config_model_name}_{dataset_name}')
     config.model = model_name
 
 
@@ -71,26 +74,31 @@ def run_experiment(dataset_name: str, model_name: str, num_runs=10, event_to_cen
 
 
     # get corresponding model
-    if config.model == 'CPH':
+    if config_model_name == 'CPH':
         Model = CPH
-    elif config.model == 'DeepHit':
+    elif config_model_name == 'DeepHit':
         if config.data == 'seer':
             Model = DeepHitCompeting
         else:
             Model = DeepHitSingleEvent
-    elif config.model == 'DeepSurv':
+    elif config_model_name == 'DeepSurv':
         Model = DeepSurv
-    elif config.model == 'DSM':
+    elif config_model_name == 'DSM':
         Model = DSM
-    elif config.model == 'PCHazard':
+    elif config_model_name == 'PCHazard':
         Model = PCHazard
-    elif config.model == 'RSF':
+    elif config_model_name == 'RSF':
         Model = RSF
+    elif config_model_name.startswith('SurvTRACE'):
+        Model = SurvTRACE
     else:
         raise('Wrong model name provided')
 
     # get corresponding evaluator
-    if (config.model == 'DeepHit' or config.model == 'DSM') and config.data == 'seer':
+    if (config_model_name == 'DeepHit' or 
+        config_model_name == 'DSM' or 
+        config_model_name == 'SurvTRACE') and \
+            config.data == 'seer':
         Evaluator = EvaluatorCompeting
     else:
         Evaluator = EvaluatorSingle
@@ -119,6 +127,8 @@ def run_experiment(dataset_name: str, model_name: str, num_runs=10, event_to_cen
 
         runs_list.append(run)
 
+
+
     export_results(runs_list, config)
 
 
@@ -129,8 +139,9 @@ def main():
 
     datasets = ['metabric', 'support', 'seer']
     # datasets = ['seer']
-    models = ['CPH', 'DeepHit', 'DeepSurv', 'DSM', 'PCHazard', 'RSF']
-    models = ['CPH']
+    models = ['CPH', 'DeepHit', 'DeepSurv', 'DSM', 'PCHazard', 'RSF' \
+                'SurvTRACE', 'SurvTRACE_woMTL', 'SurvTRACE_woIPS', 'SurvTRACE_woIPS-woMTL']
+    # models = ['SurvTRACE_woIPS', 'SurvTRACE_woIPS-woMTL']
 
     for model_name in models:
         for dataset_name in datasets:
@@ -138,8 +149,11 @@ def main():
                 run_experiment(dataset_name, model_name, number_runs, event_to_censor='event_0')
                 run_experiment(dataset_name, model_name, number_runs, event_to_censor='event_1')
             else:
+                if (dataset_name == 'metabric' or dataset_name == 'support') and \
+                    (model_name == 'SurvTRACE_woIPS' or model_name == 'SurvTRACE_woIPS-woMTL'):
+                    print(f'WARNING: {model_name} is not implemented for {dataset_name}. Skipping.')
+                    continue
                 run_experiment(dataset_name, model_name, number_runs)
-
 
 if __name__ == '__main__':
     main()
