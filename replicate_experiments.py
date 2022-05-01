@@ -142,7 +142,7 @@ def main():
 
     datasets = ['metabric', 'support', 'seer']
     # datasets = ['seer']
-    models = ['CPH', 'DeepHit', 'DeepSurv', 'DSM', 'PCHazard', 'RSF' \
+    models = ['CPH', 'DeepHit', 'DeepSurv', 'DSM', 'PCHazard', 'RSF', \
                 'SurvTRACE', 'SurvTRACE_woMTL', 'SurvTRACE_woIPS', 'SurvTRACE_woIPS-woMTL']
     # models = ['SurvTRACE', 'DeepHit', 'RSF']
 
