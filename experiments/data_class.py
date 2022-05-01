@@ -1,24 +1,33 @@
 from easydict import EasyDict
 import numpy as np
-from survtrace.dataset import load_data
+import pickle
+import os
 
 from experiments.utils import df_to_event_time_array
 
+ROOT_DIR = os.path.realpath(os.path.join(os.path.dirname(__file__), '..'))
+DATA_DIR = os.path.join(ROOT_DIR, 'data/processed')
 
 class Data:
     '''
-    loads, processes data, and splits into train, validation, and test sets
-    Data is accessed through this class.
+    Loads pickle file of data sets for a run of a dataset and
+    does additional post-processing depending on the model.
+    Downstream tasks can access data through this class.
     '''
 
-    def __init__(self, config: EasyDict, censor_event=False):
+    def __init__(self, config: EasyDict, dataset: str, run_num: int, censor_event=False):
 
-        # load data
-        # TODO: splitting the data into train, validation, test should be separate process. Each run of each experiment
-        # should use the same train, validation, test datasets so the results are comparable. currently each run, of each
-        # dataset uses its own train, validation, test.
-        self.df, self.df_train, self.df_y_train, self.df_test, self.df_y_test, self.df_val, self.df_y_val = load_data(config)
+        DATASET_DIR = os.path.join(DATA_DIR, dataset)
+
+        # load data run
+        with open(os.path.join(DATASET_DIR, f'run_{run_num}'), 'rb') as f:
+            data_tuple = pickle.load(f)
+        self.df, self.df_train, self.df_y_train, self.df_test, self.df_y_test, self.df_val, self.df_y_val, config_data = data_tuple
         
+        # add values from data config to model config file
+        for key, value in config_data.items():
+            config[key] = value
+
         # additional post processing for models that are not SurvTRACE
         if not config.model.startswith('SurvTRACE'):
             # censor event
