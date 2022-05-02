@@ -16,16 +16,16 @@ batch_size_seer = 1024
 
 ### Metabric ###
 CPH_metabric = EasyDict({
-    'epochs': 200
+    'epochs': 100
 })
 
 ### SUPPORT ###
 CPH_support = EasyDict({
-    'epochs': 200
+    'epochs': 100
 })
 ### SEER ###
 CPH_seer = EasyDict({
-    'epochs': 200,
+    'epochs': 100,
 })
 
 
@@ -163,17 +163,17 @@ PCHazard_seer = EasyDict({
 
 ### Metabric ###
 RSF_metabric = EasyDict({
-    'epochs': 100
+    'epochs': 200
 })
 
 ### SUPPORT ###
 RSF_support = EasyDict({
-    'epochs': 100
+    'epochs': 200
 })
 
 ### SEER ###
 RSF_seer = EasyDict({
-    'epochs': 100,
+    'epochs': 200,
 })
 
 ########################## SurvTRACE #########################
