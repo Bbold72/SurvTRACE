@@ -125,7 +125,11 @@ def run_experiment(dataset_name: str, model_name: str, num_runs=10, event_to_cen
 
         # calcuate metrics
         evaluator = Evaluator(data, m, config)
-        run = evaluator.eval()
+        try:
+            run = evaluator.eval()
+        except ValueError as e:
+            print(f'ERROR: Could not evaluate {model_name} on {dataset_name} data for run {i}. Skipping.')
+            print(e)
         run = update_run(run, train_time_start, train_time_finish, m.epochs_trained)
 
         runs_list.append(run)
