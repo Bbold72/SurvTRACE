@@ -134,19 +134,32 @@ DSM_seer = EasyDict({
 ### Metabric ###
 PCHazard_metabric = EasyDict({
     'batch_size': batch_size_metabric,
-    'learning_rate': 0.01,
     'epochs': 100,
-    'hidden_size': 32,
-    'dropout': 0.1
+
+    # Network
+    'hidden_layers_size': [64, 64, 64],
+    'dropout': 1e-2,
+
+    # AdamWR
+    'learning_rate': 0.01,
+    'decoupled_weight_decay': 0.8,
+    'cycle_multiplier': 2
 })
+
 
 ### SUPPORT ###
 PCHazard_support = EasyDict({
     'batch_size': batch_size_support,
-    'learning_rate': 0.01,
     'epochs': 100,
-    'hidden_size': 32,
-    'dropout': 0.1
+
+    # Network
+    'hidden_layers_size': [32, 32],
+    'dropout': 0.1,
+
+    # AdamWR
+    'learning_rate': 1e-2,
+    'decoupled_weight_decay': 0.8,
+    'cycle_multiplier': 2
 })
 
 ### SEER ###
