@@ -137,11 +137,11 @@ PCHazard_metabric = EasyDict({
     'epochs': 100,
 
     # Network
-    'hidden_layers_size': [64, 64, 64],
-    'dropout': 1e-2,
+    'hidden_layers_size': [64, 64],
+    'dropout': 0.1,
 
     # AdamWR
-    'learning_rate': 0.01,
+    'learning_rate': 1e-2,
     'decoupled_weight_decay': 0.8,
     'cycle_multiplier': 2
 })
