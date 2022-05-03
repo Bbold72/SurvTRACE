@@ -24,6 +24,35 @@ def simple_dln(config):
     return net
 
 
+def simple_dln_sequential(config):
+    hidden_size = config.hidden_size
+    dropout = config.dropout
+
+    def net_template(input_size: int=hidden_size):
+        net = torch.nn.Sequential(
+            torch.nn.Linear(input_size, hidden_size),
+            torch.nn.ReLU(),
+            torch.nn.BatchNorm1d(hidden_size),
+            torch.nn.Dropout(dropout)
+        )
+        return net
+        
+
+    modules = []
+
+    # first layer
+    modules.append(net_template(config.num_feature))
+
+    # intermediate layers
+    for i in range(config.hidden_layers):
+        modules.append(net_template())
+       
+    # last layer
+    modules.append(torch.nn.Linear(hidden_size, config.out_feature))
+
+    return torch.nn.Sequential(*modules)
+    
+
 class CauseSpecificNet(torch.nn.Module):
     """Network structure similar to the DeepHit paper, but without the residual
     connections (for simplicity).
