@@ -165,10 +165,16 @@ PCHazard_support = EasyDict({
 ### SEER ###
 PCHazard_seer = EasyDict({
     'batch_size': batch_size_seer,
-    'learning_rate': 0.01,
     'epochs': 100,
-    'hidden_size': 32,
+
+    # Network
+    'hidden_layers_size': [32, 32, 32, 32],
     'dropout': 0.1,
+
+    # AdamWR
+    'learning_rate': 1e-3,
+    'decoupled_weight_decay': 0.8,
+    'cycle_multiplier': 2
 })
 
 
