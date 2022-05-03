@@ -67,17 +67,28 @@ DeepSurv_metabric = EasyDict({
     'batch_size': batch_size_metabric,
     'learning_rate': 0.01,
     'epochs': 100,
-    'hidden_size': 32,
-    'dropout': 0.1
+
+    # Network
+    'hidden_layers_size': [32, 32],
+    'dropout': 0.1,
+
+    # Adam
+    'learning_rate': 1e-2,
+    'weight_decay': 0,
 })
 
 ### SUPPORT ###
 DeepSurv_support = EasyDict({
     'batch_size': batch_size_support,
-    'learning_rate': 0.01,
     'epochs': 100,
-    'hidden_size': 32,
-    'dropout': 0.1
+
+    # Network
+    'hidden_layers_size': [32, 32],
+    'dropout': 0.1,
+
+    # Adam
+    'learning_rate': 1e-2,
+    'weight_decay': 0,
 })
 
 ### SEER ###

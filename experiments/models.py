@@ -212,11 +212,19 @@ class DeepSurv(BasePycox):
         self.eval_offset = 0
 
         config.out_feature = 1   # need to overwrite value set in load_data
-        net = simple_dln(config)
+
+        # define neural network
+        net = MLPVanilla(in_features=config.num_feature, 
+                        num_nodes=config.hidden_layers_size, 
+                        out_features=config.out_feature, 
+                        batch_norm=True, 
+                        dropout=config.dropout, 
+                        output_bias=True
+                        )
+        optim = tt.optim.Adam(lr=config.learning_rate, weight_decay=config.weight_decay)
 
         # initialize model
-        self.model = CoxPH(net, tt.optim.Adam)
-        self.model.optimizer.set_lr(config.learning_rate)
+        self.model = CoxPH(net, optim)
 
     # overwrite train method
     def train(self, data):
