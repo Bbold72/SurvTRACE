@@ -15,6 +15,8 @@ from survtrace.model import SurvTraceSingle, SurvTraceMulti
 from survtrace.train_utils import Trainer
 
 from survtrace.losses import NLLLogistiHazardLoss, NLLPCHazardLoss
+
+import torch
 from torch.nn import BCELoss, MSELoss
 
 from torch.nn import BCELoss, MSELoss, ReLU
@@ -129,6 +131,56 @@ class BaseSksurv(BaseModel):
         self.epochs_trained = self.epochs
 
 
+class CauseSpecificNet(torch.nn.Module):
+    """Network structure similar to the DeepHit paper.
+    """
+    def __init__(self, config):
+        
+        # get number of events
+        try: 
+            self.num_event = config.num_event
+        except AttributeError:
+            self.num_event = 1
+
+        super().__init__()
+        self.shared_net = MLPVanilla(
+            in_features=config.num_feature, 
+            num_nodes=config.hidden_layers_size, 
+            out_features=config.hidden_layers_size[0],
+            batch_norm=True, 
+            dropout=config.dropout,
+            output_bias=True
+        )
+
+        self.risk_nets = torch.nn.ModuleList()
+        for _ in range(self.num_event):
+            net = MLPVanilla(
+                in_features=config.hidden_layers_size[0] + config.num_feature, # concatenating shared representation and features
+                num_nodes=config.hidden_layers_size, 
+                out_features=config.out_feature,
+                batch_norm=True, 
+                dropout=config.dropout,
+                output_bias=True
+            )
+            self.risk_nets.append(net)
+
+
+    def forward(self, input):
+        # get share representation
+        out = self.shared_net(input)
+  
+        # concatenating shared representation and features
+        out = torch.cat([out, input], dim=1)
+        out = [net(out) for net in self.risk_nets]
+        out = torch.stack(out, dim=1)
+
+        # remove risk dimension
+        if self.num_event == 1:
+            out = out.squeeze(1)
+
+        return out
+
+
 class CPH(BaseSksurv):
     '''
     Cox Proportional Hazards
@@ -143,11 +195,11 @@ class CPH(BaseSksurv):
         super().__init__(config)
         self.eval_offset = 0
         self.model = CoxPHSurvivalAnalysis(n_iter=config.epochs, verbose=1)
-
-  
-class DeepHitCompeting(BasePycox):
+          
+    
+class DH(BasePycox):
     '''
-    DeepHit for competing events.
+    DeepHit model.
 
     Child of BasePycox.
     '''
@@ -159,41 +211,17 @@ class DeepHitCompeting(BasePycox):
         super().__init__(config)
         self.eval_offset = 0
         net = CauseSpecificNet(config)
-        optimizer = tt.optim.AdamWR(lr=0.01, 
-                                        decoupled_weight_decay=0.01,
-                                        cycle_eta_multiplier=0.8
-                                        )
+
+        # get appropriate DeepHit model
+        M = DeepHit if config.data == 'seer' else DeepHitSingle
+
         # initialize model
-        self.model = DeepHit(net, 
-                        optimizer, 
-                        alpha=0.2, 
-                        sigma=0.1,
+        self.model = M(net, 
+                        tt.optim.Adam, 
+                        alpha=config.alpha, 
+                        sigma=config.sigma, 
                         duration_index=config.duration_index
                         )
-            
-    
-class DeepHitSingleEvent(BasePycox):
-    '''
-    DeepHit for single events.
-
-    Child of BasePycox.
-    '''
-    def __init__(self, config):
-        '''
-        Args:
-            - config: configuration dictionary from experiments.configurations
-        '''
-        super().__init__(config)
-        self.eval_offset = 0
-        net = simple_dln(config)
-
-        # initialize model
-        self.model = DeepHitSingle(net, tt.optim.Adam, 
-                                alpha=0.2, 
-                                sigma=0.1, 
-                                duration_index=np.array(config['duration_index'],
-                                dtype='float32')
-                                )
         self.model.optimizer.set_lr(config.learning_rate)
 
 

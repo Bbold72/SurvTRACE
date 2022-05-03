@@ -4,7 +4,7 @@ from typing import Optional
 from experiments import configurations
 from experiments.data_class import Data
 from experiments.evaluator import EvaluatorSingle, EvaluatorCompeting
-from experiments.models import CPH, DeepHitSingleEvent, DeepHitCompeting, DeepSurv, DSM, PCHazard, RSF, SurvTRACE
+from experiments.models import CPH, DH, DeepSurv, DSM, PCHazard, RSF, SurvTRACE
 from experiments.utils import export_results, update_run
 
 
@@ -81,10 +81,7 @@ def run_experiment(dataset_name: str, model_name: str, num_runs=10, event_to_cen
     if config_model_name == 'CPH':
         Model = CPH
     elif config_model_name == 'DeepHit':
-        if dataset_name == 'seer':
-            Model = DeepHitCompeting
-        else:
-            Model = DeepHitSingleEvent
+        Model = DH
     elif config_model_name == 'DeepSurv':
         Model = DeepSurv
     elif config_model_name == 'DSM':
