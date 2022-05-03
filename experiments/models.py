@@ -17,7 +17,10 @@ from survtrace.train_utils import Trainer
 from survtrace.losses import NLLLogistiHazardLoss, NLLPCHazardLoss
 from torch.nn import BCELoss, MSELoss
 
-from experiments.dlns import simple_dln, CauseSpecificNet
+from torch.nn import BCELoss, MSELoss, ReLU
+from torchtuples.practical import MLPVanilla
+
+from experiments.dlns import simple_dln, simple_dln_sequential, CauseSpecificNet
 from experiments.data_class import Data
 
 class BaseModel(ABC):
@@ -270,6 +273,15 @@ class PCHazard(BasePycox):
         self.eval_offset = 1
 
         # define neural network
+        net = MLPVanilla(in_features=config.num_feature, 
+                        num_nodes=config.hidden_layers_size, 
+                        out_features=config.out_feature, 
+                        batch_norm=True, 
+                        dropout=config.dropout, 
+                        output_bias=True
+                        )
+
+        # AdamWR optimizer
         optimizer = tt.optim.AdamWR(lr=config.learning_rate, 
                                     decoupled_weight_decay=config.decoupled_weight_decay,
                                     cycle_multiplier=config.cycle_multiplier
