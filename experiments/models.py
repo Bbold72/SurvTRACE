@@ -270,12 +270,13 @@ class PCHazard(BasePycox):
         self.eval_offset = 1
 
         # define neural network
-        net = simple_dln(config)
+        optimizer = tt.optim.AdamWR(lr=config.learning_rate, 
+                                    decoupled_weight_decay=config.decoupled_weight_decay,
+                                    cycle_multiplier=config.cycle_multiplier
+                                    )
 
         # initalize model
-        self.model = PCH(net, tt.optim.Adam, duration_index=np.array(config['duration_index'], dtype='float32'))
-        self.model.optimizer.set_lr(config.learning_rate)
-
+        self.model = PCH(net, optimizer, duration_index=np.array(config['duration_index'], dtype='float32'))
 
 
 class RSF(BaseSksurv):
