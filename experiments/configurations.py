@@ -70,11 +70,18 @@ DeepHit_support = EasyDict({
 ### SEER ###
 DeepHit_seer = EasyDict({
     'batch_size': batch_size_seer,
-    'learning_rate': 0.01,
     'epochs': 100,
-    'hidden_size_indiv': 32,
-    'hidden_size_shared': 64,
-    'dropout': 0.1
+
+    # network
+    'hidden_layers_size': [16, 16],
+    'dropout': 0.1,
+
+    # loss
+    'alpha': 0.2,
+    'sigma': 0.1,
+
+    # optimizer
+    'learning_rate': 0.001
 })
 
 
