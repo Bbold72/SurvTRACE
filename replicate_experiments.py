@@ -141,7 +141,7 @@ def main():
     number_runs = 10   # number of runs for each model
 
     datasets = ['metabric', 'support', 'seer']
-    # datasets = ['support']
+    # datasets = ['seer']
     models = ['CPH', 'DeepHit', 'DeepSurv', 'DSM', 'PCHazard', 'RSF', \
                 'SurvTRACE', 'SurvTRACE_woMTL', 'SurvTRACE_woIPS', 'SurvTRACE_woIPS-woMTL']
     # models = ['DeepHit']
