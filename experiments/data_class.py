@@ -29,9 +29,10 @@ class Data:
             config[key] = value
 
         # additional post processing for models that are not SurvTRACE
-        if not config.model.startswith('SurvTRACE'):
+        if not config.model.startswith('survtrace'):
             # censor event
             if censor_event:
+                print(f'Censoring {config.event_to_censor}.')
                 censor_event = lambda df: df.drop(config.event_to_censor, axis=1).rename(columns={config.event_to_keep: 'event'})
 
                 self.df = censor_event(self.df)

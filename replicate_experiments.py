@@ -28,10 +28,10 @@ def run_experiment(dataset_name: str, model_name: str, num_runs=10, event_to_cen
         - DSM: Deep Survival Machines
         - PCHazard: PC-Hazard
         - RSF: Random Survival Forests
-        - SurvTRACE: SurvTRACE with MTL & IPS
-        - SurvTRACE_woMTL: SurvTRACE without MTL but with IPS
-        - SurvTRACE_woIPS: SurvTRACE with MTL but without IPS
-        - SurvTRACE_woIPS-woMTL: SurvTRACE without MTL and without IPS
+        - survtrace: SurvTRACE with MTL & IPS
+        - survtrace-woMTL: SurvTRACE without MTL but with IPS
+        - survtrace-woIPS: SurvTRACE with MTL but without IPS
+        - survtrace-woIPS-woMTL: SurvTRACE without MTL and without IPS
 
     Args:
         dataset_name (str): Name of dataset to use. One of ['metabric', 'support', 'seer']
@@ -53,8 +53,8 @@ def run_experiment(dataset_name: str, model_name: str, num_runs=10, event_to_cen
     censor_event = True if event_to_censor else False
     
     # intialize configuration
-    if '_' in model_name:
-        config_model_name = model_name.split('_')[0]
+    if model_name.startswith('survtrace'):
+        config_model_name = model_name.split('-')[0]
     else:
         config_model_name = model_name
     config = getattr(configurations, f'{config_model_name}_{dataset_name}')
@@ -74,7 +74,7 @@ def run_experiment(dataset_name: str, model_name: str, num_runs=10, event_to_cen
         event_name = ''
     print(f'Running {config.model}{event_name} on {dataset_name}')
 
-    # config.epochs=1
+    config.epochs=1
 
 
     # get corresponding model
@@ -90,7 +90,7 @@ def run_experiment(dataset_name: str, model_name: str, num_runs=10, event_to_cen
         Model = PCHazard
     elif config_model_name == 'RSF':
         Model = RSF
-    elif config_model_name.startswith('SurvTRACE'):
+    elif config_model_name.startswith('survtrace'):
         Model = SurvTRACE
     else:
         raise('Wrong model name provided')
@@ -98,7 +98,7 @@ def run_experiment(dataset_name: str, model_name: str, num_runs=10, event_to_cen
     # get corresponding evaluator
     if (config_model_name == 'DeepHit' or 
         config_model_name == 'DSM' or 
-        config_model_name == 'SurvTRACE') and \
+        config_model_name == 'survtrace') and \
             dataset_name == 'seer':
         Evaluator = EvaluatorCompeting
     else:
@@ -139,13 +139,13 @@ def run_experiment(dataset_name: str, model_name: str, num_runs=10, event_to_cen
 def main():
     # models that require an event to be censored for competing events
     cause_specific_models = set(['CPH', 'DeepSurv', 'PCHazard', 'RSF'])  
-    number_runs = 10   # number of runs for each model
+    number_runs = 1   # number of runs for each model
 
     datasets = ['metabric', 'support', 'seer']
-    datasets = ['seer']
+    # datasets = ['metabric', 'support']
     models = ['CPH', 'DeepHit', 'DeepSurv', 'DSM', 'PCHazard', 'RSF', \
-                'SurvTRACE', 'SurvTRACE_woMTL', 'SurvTRACE_woIPS', 'SurvTRACE_woIPS-woMTL']
-    models = ['SurvTRACE', 'SurvTRACE_woMTL', 'SurvTRACE_woIPS', 'SurvTRACE_woIPS-woMTL']
+                'survtrace', 'survtrace-woMTL', 'survtrace-woIPS', 'survtrace-woIPS-woMTL']
+    models = ['survtrace-woMTL', 'survtrace-woIPS', 'survtrace-woIPS-woMTL']
 
     for model_name in models:
         for dataset_name in datasets:

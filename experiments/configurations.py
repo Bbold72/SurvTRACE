@@ -247,7 +247,7 @@ RSF_seer = EasyDict({
 #   and not on different variants.
 
 ### METABRIC ###
-SurvTRACE_metabric = EasyDict(
+survtrace_metabric = EasyDict(
     {
         'num_durations': 5, # num of discrete intervals for prediction, e.g., num_dur = 5 means the whole period is discretized to be 5 intervals
         'seed': 1234,
@@ -284,7 +284,7 @@ SurvTRACE_metabric = EasyDict(
 )
 
 ### SUPPORT ###
-SurvTRACE_support = EasyDict(
+survtrace_support = EasyDict(
     {
         'num_durations': 5, # num of discrete intervals for prediction, e.g., num_dur = 5 means the whole period is discretized to be 5 intervals
         'seed': 1234,
@@ -322,7 +322,7 @@ SurvTRACE_support = EasyDict(
 
 
 ### SEER ###
-SurvTRACE_seer = EasyDict(
+survtrace_seer = EasyDict(
     {
         'num_durations': 5, # num of discrete intervals for prediction, e.g., num_dur = 5 means the whole period is discretized to be 5 intervals
         'seed': 1234,
