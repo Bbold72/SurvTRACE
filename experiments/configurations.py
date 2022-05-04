@@ -344,7 +344,7 @@ survtrace_seer = EasyDict(
         'num_event': 1, # only set when using SurvTraceMulti for competing risks
         'hidden_act': 'gelu',
         'attention_probs_dropout_prob': 0.1,
-        'early_stop_patience': 20,
+        'early_stop_patience': 8,
         'initializer_range': 0.02,
         'layer_norm_eps': 1e-12,
         'max_position_embeddings': 512, # # no use
