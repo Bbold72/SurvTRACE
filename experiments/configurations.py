@@ -30,23 +30,41 @@ CPH_seer = EasyDict({
 
 
 ########################## DeepHit ##########################
+# alpha: governs the contribution of likelihoo and rank loss
+# sigma: scales loss function
 
 ### Metabric ###
 DeepHit_metabric = EasyDict({
     'batch_size': batch_size_metabric,
-    'learning_rate': 0.01,
     'epochs': 100,
-    'hidden_size': 32,
-    'dropout': 0.1
+
+    # network
+    'hidden_layers_size': [16],
+    'dropout': 0.1,
+
+    # loss
+    'alpha': 0.2,
+    'sigma': 0.1,
+
+    # optimizer
+    'learning_rate': 0.01
 })
 
 ### SUPPORT ###
 DeepHit_support = EasyDict({
     'batch_size': batch_size_support,
-    'learning_rate': 0.01,
     'epochs': 100,
-    'hidden_size': 32,
-    'dropout': 0.1
+
+    # network
+    'hidden_layers_size': [16, 16],
+    'dropout': 0.1,
+
+    # loss
+    'alpha': 0.2,
+    'sigma': 0.1,
+
+    # optimizer
+    'learning_rate': 0.01
 })
 
 ### SEER ###
