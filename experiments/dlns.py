@@ -1,3 +1,5 @@
+# deep neural networks that are passed to some models from pycox
+
 import torch 
 import torchtuples as tt # Some useful functions
 
@@ -20,6 +22,7 @@ def simple_dln(config):
         torch.nn.Linear(hidden_size, config.out_feature)
     )
     return net
+
 
 class CauseSpecificNet(torch.nn.Module):
     """Network structure similar to the DeepHit paper, but without the residual
