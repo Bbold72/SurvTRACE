@@ -142,10 +142,10 @@ def main():
     number_runs = 10   # number of runs for each model
 
     datasets = ['metabric', 'support', 'seer']
-    # datasets = ['support']
+    datasets = ['seer']
     models = ['CPH', 'DeepHit', 'DeepSurv', 'DSM', 'PCHazard', 'RSF', \
                 'SurvTRACE', 'SurvTRACE_woMTL', 'SurvTRACE_woIPS', 'SurvTRACE_woIPS-woMTL']
-    # models = ['DeepHit']
+    models = ['SurvTRACE', 'SurvTRACE_woMTL', 'SurvTRACE_woIPS', 'SurvTRACE_woIPS-woMTL']
 
     for model_name in models:
         for dataset_name in datasets:
@@ -153,11 +153,6 @@ def main():
                 run_experiment(dataset_name, model_name, number_runs, event_to_censor='event_0')
                 run_experiment(dataset_name, model_name, number_runs, event_to_censor='event_1')
             else:
-                if (dataset_name == 'metabric' or dataset_name == 'support') and \
-                    (model_name == 'SurvTRACE_woIPS' or model_name == 'SurvTRACE_woIPS-woMTL'):
-                    print(f'WARNING: {model_name} is not implemented for {dataset_name}. Skipping.')
-                    continue
-
                 run_experiment(dataset_name, model_name, number_runs)
 
 if __name__ == '__main__':
