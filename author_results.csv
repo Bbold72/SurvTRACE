@@ -4,7 +4,7 @@ horizon,mean,std,model,dataset,event_num
 0.75_ipcw,0.853,1.60E-03,DeepHit,seer,0
 0.25_ipcw,0.763,1.60E-02,DeepHit,seer,1
 0.5_ipcw,0.748,1.50E-02,DeepHit,seer,1
-0.75_ipcw,0.724,1.30E-02,DeepHit,seer,1
+0.75_ipcw,0.724,1.13E-02,DeepHit,seer,1
 0.25_ipcw,0.895,1.70E-03,PCHazard,seer,0
 0.5_ipcw,0.875,1.60E-03,PCHazard,seer,0
 0.75_ipcw,0.858,4.00E-04,PCHazard,seer,0
@@ -40,7 +40,7 @@ horizon,mean,std,model,dataset,event_num
 0.75_ipcw,0.856,1.20E-03,DSM,seer,0
 0.25_ipcw,0.765,4.60E-03,DSM,seer,1
 0.5_ipcw,0.761,3.90E-03,DSM,seer,1
-0.75_ipcw,0.75,2.30E+03,DSM,seer,1
+0.75_ipcw,0.75,2.30E-03,DSM,seer,1
 0.25_ipcw,0.652,0.011,PCHazard,support,
 0.5_ipcw,0.62,8.00E-03,PCHazard,support,
 0.75_ipcw,0.607,8.00E-03,PCHazard,support,
