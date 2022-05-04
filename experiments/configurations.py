@@ -73,7 +73,7 @@ DeepHit_seer = EasyDict({
     'epochs': 100,
 
     # network
-    'hidden_layers_size': [16, 16],
+    'hidden_layers_size': [32, 32],
     'dropout': 0.1,
 
     # loss
@@ -90,7 +90,6 @@ DeepHit_seer = EasyDict({
 ### Metabric ###
 DeepSurv_metabric = EasyDict({
     'batch_size': batch_size_metabric,
-    'learning_rate': 0.01,
     'epochs': 100,
 
     # Network
@@ -118,15 +117,22 @@ DeepSurv_support = EasyDict({
 
 ### SEER ###
 DeepSurv_seer = EasyDict({
-    'batch_size': batch_size_support,
-    'learning_rate': 0.01,
+    'batch_size': batch_size_seer,
     'epochs': 100,
-    'hidden_size': 32,
+
+    # Network
+    'hidden_layers_size': [64, 64],
     'dropout': 0.1,
+
+    # Adam
+    'learning_rate': 1e-2,
+    'weight_decay': 0.1,
 })
 
 
 ########################## Deep Survival Machines ##########################
+# hidden_size (list): number of layers and number of nodex
+# k: number of underlying parametric distributions
 
 ### Metabric ###
 DSM_metabric = EasyDict({
@@ -215,20 +221,25 @@ PCHazard_seer = EasyDict({
 
 
 ########################## Random Survival Forests ##########################
+# epoch: in this context, refers to number of trees to generate in the forest.
+# max_depth: maximum depth of the tree.
 
 ### Metabric ###
 RSF_metabric = EasyDict({
-    'epochs': 200
+    'epochs': 200,
+    'max_depth': 4
 })
 
 ### SUPPORT ###
 RSF_support = EasyDict({
-    'epochs': 200
+    'epochs': 200,
+    'max_depth': 4
 })
 
 ### SEER ###
 RSF_seer = EasyDict({
     'epochs': 200,
+    'max_depth': 4
 })
 
 ########################## SurvTRACE #########################
@@ -265,7 +276,7 @@ SurvTRACE_metabric = EasyDict(
         'pruned_heads': {}, # no use
 
         # hyperparameters
-        'batch_size': 64,
+        'batch_size': batch_size_metabric,
         'weight_decay': 1e-4,
         'learning_rate': 1e-3,
         'epochs': 100
@@ -302,7 +313,7 @@ SurvTRACE_support = EasyDict(
         'pruned_heads': {}, # no use
 
         # hyperparameters
-        'batch_size': 128,
+        'batch_size': batch_size_support,
         'weight_decay': 0,
         'learning_rate': 1e-3,
         'epochs': 100
@@ -310,7 +321,7 @@ SurvTRACE_support = EasyDict(
 )
 
 
-### SUPPORT ###
+### SEER ###
 SurvTRACE_seer = EasyDict(
     {
         'num_durations': 5, # num of discrete intervals for prediction, e.g., num_dur = 5 means the whole period is discretized to be 5 intervals
@@ -341,7 +352,7 @@ SurvTRACE_seer = EasyDict(
         'val_batch_size': 10000,
 
         # hyperparameters
-        'batch_size': 1024,
+        'batch_size': batch_size_seer,
         'weight_decay': 0,
         'learning_rate': 1e-4,
         'epochs': 100
