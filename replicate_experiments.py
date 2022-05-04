@@ -81,7 +81,7 @@ def run_experiment(dataset_name: str, model_name: str, num_runs=10, event_to_cen
     if config_model_name == 'CPH':
         Model = CPH
     elif config_model_name == 'DeepHit':
-        if config.data == 'seer':
+        if dataset_name == 'seer':
             Model = DeepHitCompeting
         else:
             Model = DeepHitSingleEvent
@@ -102,7 +102,7 @@ def run_experiment(dataset_name: str, model_name: str, num_runs=10, event_to_cen
     if (config_model_name == 'DeepHit' or 
         config_model_name == 'DSM' or 
         config_model_name == 'SurvTRACE') and \
-            config.data == 'seer':
+            dataset_name == 'seer':
         Evaluator = EvaluatorCompeting
     else:
         Evaluator = EvaluatorSingle
@@ -113,7 +113,7 @@ def run_experiment(dataset_name: str, model_name: str, num_runs=10, event_to_cen
         print(f'Run {i+1}/{num_runs}')
 
         # load data
-        data = Data(config, censor_event)
+        data = Data(config, dataset=dataset_name, run_num=i, censor_event=censor_event)
 
         # initalize model
         m = Model(config)
@@ -131,20 +131,20 @@ def run_experiment(dataset_name: str, model_name: str, num_runs=10, event_to_cen
         runs_list.append(run)
 
 
-
     export_results(runs_list, config)
 
 
+# run each dataset on each model for 10 runs
 def main():
     # models that require an event to be censored for competing events
     cause_specific_models = set(['CPH', 'DeepSurv', 'PCHazard', 'RSF'])  
-    number_runs = 1
+    number_runs = 10   # number of runs for each model
 
     datasets = ['metabric', 'support', 'seer']
     # datasets = ['seer']
     models = ['CPH', 'DeepHit', 'DeepSurv', 'DSM', 'PCHazard', 'RSF', \
                 'SurvTRACE', 'SurvTRACE_woMTL', 'SurvTRACE_woIPS', 'SurvTRACE_woIPS-woMTL']
-    # models = ['SurvTRACE', 'DeepHit', 'RSF']
+    # models = ['DeepHit']
 
     for model_name in models:
         for dataset_name in datasets:
@@ -156,6 +156,7 @@ def main():
                     (model_name == 'SurvTRACE_woIPS' or model_name == 'SurvTRACE_woIPS-woMTL'):
                     print(f'WARNING: {model_name} is not implemented for {dataset_name}. Skipping.')
                     continue
+
                 run_experiment(dataset_name, model_name, number_runs)
 
 if __name__ == '__main__':

@@ -8,7 +8,6 @@ from easydict import EasyDict
 # TODO: maybe this can be reduced by using classes per model
 
 ################################## Globals ##################################
-horizons = [.25, .5, .75]
 batch_size_metabric = 64
 batch_size_support = 128
 batch_size_seer = 1024
@@ -17,21 +16,15 @@ batch_size_seer = 1024
 
 ### Metabric ###
 CPH_metabric = EasyDict({
-    'data': 'metabric',
-    'horizons': horizons,
     'epochs': 200
 })
 
 ### SUPPORT ###
 CPH_support = EasyDict({
-    'data': 'support',
-    'horizons': horizons,
     'epochs': 200
 })
 ### SEER ###
 CPH_seer = EasyDict({
-    'data': 'seer',
-    'horizons': horizons,
     'epochs': 200,
 })
 
@@ -40,8 +33,6 @@ CPH_seer = EasyDict({
 
 ### Metabric ###
 DeepHit_metabric = EasyDict({
-    'data': 'metabric',
-    'horizons': horizons,
     'batch_size': batch_size_metabric,
     'learning_rate': 0.01,
     'epochs': 100,
@@ -51,8 +42,6 @@ DeepHit_metabric = EasyDict({
 
 ### SUPPORT ###
 DeepHit_support = EasyDict({
-    'data': 'support',
-    'horizons': horizons,
     'batch_size': batch_size_support,
     'learning_rate': 0.01,
     'epochs': 100,
@@ -62,8 +51,6 @@ DeepHit_support = EasyDict({
 
 ### SEER ###
 DeepHit_seer = EasyDict({
-    'data': 'seer',
-    'horizons': horizons,
     'batch_size': batch_size_seer,
     'learning_rate': 0.01,
     'epochs': 100,
@@ -77,8 +64,6 @@ DeepHit_seer = EasyDict({
 
 ### Metabric ###
 DeepSurv_metabric = EasyDict({
-    'data': 'metabric',
-    'horizons': horizons,
     'batch_size': batch_size_metabric,
     'learning_rate': 0.01,
     'epochs': 100,
@@ -88,8 +73,6 @@ DeepSurv_metabric = EasyDict({
 
 ### SUPPORT ###
 DeepSurv_support = EasyDict({
-    'data': 'support',
-    'horizons': horizons,
     'batch_size': batch_size_support,
     'learning_rate': 0.01,
     'epochs': 100,
@@ -99,8 +82,6 @@ DeepSurv_support = EasyDict({
 
 ### SEER ###
 DeepSurv_seer = EasyDict({
-    'data': 'seer',
-    'horizons': horizons,
     'batch_size': batch_size_support,
     'learning_rate': 0.01,
     'epochs': 100,
@@ -113,8 +94,6 @@ DeepSurv_seer = EasyDict({
 
 ### Metabric ###
 DSM_metabric = EasyDict({
-    'data': 'metabric',
-    'horizons': horizons,
     'batch_size': batch_size_metabric,
     'epochs': 100,
     'hidden_size': [100, 100],
@@ -127,8 +106,6 @@ DSM_metabric = EasyDict({
 
 ### SUPPORT ###
 DSM_support = EasyDict({
-    'data': 'support',
-    'horizons': horizons,
     'batch_size': batch_size_support,
     'epochs': 100,
     'hidden_size': [100, 100],
@@ -141,8 +118,6 @@ DSM_support = EasyDict({
 
 ### SEER ###
 DSM_seer = EasyDict({
-    'data': 'seer',
-    'horizons': horizons,
     'batch_size': batch_size_seer,
     'epochs': 100,
     'hidden_size': [100, 100],
@@ -158,8 +133,6 @@ DSM_seer = EasyDict({
 
 ### Metabric ###
 PCHazard_metabric = EasyDict({
-    'data': 'metabric',
-    'horizons': horizons,
     'batch_size': batch_size_metabric,
     'learning_rate': 0.01,
     'epochs': 100,
@@ -169,8 +142,6 @@ PCHazard_metabric = EasyDict({
 
 ### SUPPORT ###
 PCHazard_support = EasyDict({
-    'data': 'support',
-    'horizons': horizons,
     'batch_size': batch_size_support,
     'learning_rate': 0.01,
     'epochs': 100,
@@ -180,8 +151,6 @@ PCHazard_support = EasyDict({
 
 ### SEER ###
 PCHazard_seer = EasyDict({
-    'data': 'seer',
-    'horizons': horizons,
     'batch_size': batch_size_seer,
     'learning_rate': 0.01,
     'epochs': 100,
@@ -194,22 +163,16 @@ PCHazard_seer = EasyDict({
 
 ### Metabric ###
 RSF_metabric = EasyDict({
-    'data': 'metabric',
-    'horizons': horizons,
     'epochs': 100
 })
 
 ### SUPPORT ###
 RSF_support = EasyDict({
-    'data': 'support',
-    'horizons': horizons,
     'epochs': 100
 })
 
 ### SEER ###
 RSF_seer = EasyDict({
-    'data': 'seer',
-    'horizons': horizons,
     'epochs': 100,
 })
 
@@ -220,9 +183,7 @@ RSF_seer = EasyDict({
 ### METABRIC ###
 SurvTRACE_metabric = EasyDict(
     {
-        'data': 'metabric', # dataset name, in 'metabric', 'support', or 'seer'
         'num_durations': 5, # num of discrete intervals for prediction, e.g., num_dur = 5 means the whole period is discretized to be 5 intervals
-        'horizons': [.25, .5, .75], # the discrete intervals are cut at 0%, 25%, 50%, 75%, 100%
         'seed': 1234,
         'checkpoint': './checkpoints/survtrace.pt',
         'vocab_size': 8, # num of all possible values of categorical features
@@ -259,9 +220,7 @@ SurvTRACE_metabric = EasyDict(
 ### SUPPORT ###
 SurvTRACE_support = EasyDict(
     {
-        'data': 'support', # dataset name, in 'metabric', 'support', or 'seer'
         'num_durations': 5, # num of discrete intervals for prediction, e.g., num_dur = 5 means the whole period is discretized to be 5 intervals
-        'horizons': [.25, .5, .75], # the discrete intervals are cut at 0%, 25%, 50%, 75%, 100%
         'seed': 1234,
         'checkpoint': './checkpoints/survtrace.pt',
         'vocab_size': 8, # num of all possible values of categorical features
@@ -299,9 +258,7 @@ SurvTRACE_support = EasyDict(
 ### SUPPORT ###
 SurvTRACE_seer = EasyDict(
     {
-        'data': 'seer', # dataset name, in 'metabric', 'support', or 'seer'
         'num_durations': 5, # num of discrete intervals for prediction, e.g., num_dur = 5 means the whole period is discretized to be 5 intervals
-        'horizons': [.25, .5, .75], # the discrete intervals are cut at 0%, 25%, 50%, 75%, 100%
         'seed': 1234,
         'checkpoint': './checkpoints/survtrace.pt',
         'vocab_size': 8, # num of all possible values of categorical features
