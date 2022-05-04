@@ -40,11 +40,11 @@ class EvaluatorBase:
         self.df_train_all = data.df.loc[data.df_train.index]
 
         if test_set:
-            self.x_eval = data.df_test if self.model_name.startswith('SurvTRACE') else data.x_test
+            self.x_eval = data.df_test if self.model_name.startswith('survtrace') else data.x_test
             self.df_y_eval = data.df_y_test
         # use validation set
         else:
-            self.x_eval = data.df_val if self.model_name.startswith('SurvTRACE') else data.x_val
+            self.x_eval = data.df_val if self.model_name.startswith('survtrace') else data.x_val
             self.df_y_eval = data.df_y_val
 
 
@@ -165,7 +165,7 @@ class EvaluatorSingle(EvaluatorBase):
         elif self.model_name == 'DeepSurv':
             _ = self.model.model.compute_baseline_hazards()
             return 1 - self.model.model.predict_surv(self.x_eval)
-        elif self.model_name.startswith('SurvTRACE'):
+        elif self.model_name.startswith('survtrace'):
             return 1 - self.model.model.predict_surv(self.x_eval, batch_size=None).cpu()
         else:
             return 1 - self.model.model.predict_surv(self.x_eval)
@@ -235,7 +235,7 @@ class EvaluatorCompeting(EvaluatorBase):
             return 1 - self.model.model.predict_survival(self.x_eval.astype('float64'), self.times.tolist(), risk=event_idx+1)
         elif self.model_name == 'DeepHit':
             return self.model.model.predict_cif(self.x_eval)[event_idx, :, :].transpose()
-        elif self.model_name.startswith('SurvTRACE'):
+        elif self.model_name.startswith('survtrace'):
             return 1 - self.model.model.predict_surv(self.x_eval, batch_size=10000, event=event_idx).cpu()
         else:
             raise('Model not implemented')

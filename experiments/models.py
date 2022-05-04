@@ -13,11 +13,12 @@ from sksurv.ensemble import RandomSurvivalForest
 
 from survtrace.model import SurvTraceSingle, SurvTraceMulti
 from survtrace.train_utils import Trainer
-
 from survtrace.losses import NLLLogistiHazardLoss, NLLPCHazardLoss
-from torch.nn import BCELoss, MSELoss
 
-from experiments.dlns import simple_dln, CauseSpecificNet
+import torch
+from torch.nn import BCELoss, MSELoss
+from torchtuples.practical import MLPVanilla
+
 from experiments.data_class import Data
 
 class BaseModel(ABC):
@@ -126,11 +127,64 @@ class BaseSksurv(BaseModel):
         self.epochs_trained = self.epochs
 
 
+class CauseSpecificNet(torch.nn.Module):
+    """Network structure similar to the DeepHit paper.
+    """
+    def __init__(self, config):
+        
+        # get number of events
+        try: 
+            self.num_event = config.num_event
+        except AttributeError:
+            self.num_event = 1
+
+        super().__init__()
+        self.shared_net = MLPVanilla(
+            in_features=config.num_feature, 
+            num_nodes=config.hidden_layers_size, 
+            out_features=config.hidden_layers_size[0],
+            batch_norm=True, 
+            dropout=config.dropout,
+            output_bias=True
+        )
+
+        self.risk_nets = torch.nn.ModuleList()
+        for _ in range(self.num_event):
+            net = MLPVanilla(
+                in_features=config.hidden_layers_size[0] + config.num_feature, # concatenating shared representation and features
+                num_nodes=config.hidden_layers_size, 
+                out_features=config.out_feature,
+                batch_norm=True, 
+                dropout=config.dropout,
+                output_bias=True
+            )
+            self.risk_nets.append(net)
+
+
+    def forward(self, input):
+        # get share representation
+        out = self.shared_net(input)
+  
+        # concatenating shared representation and features
+        out = torch.cat([out, input], dim=1)
+        out = [net(out) for net in self.risk_nets]
+        out = torch.stack(out, dim=1)
+
+        # remove risk dimension
+        if self.num_event == 1:
+            out = out.squeeze(1)
+
+        return out
+
+
 class CPH(BaseSksurv):
     '''
     Cox Proportional Hazards
 
     Child of BaseSksurv.
+
+    References:
+        https://scikit-survival.readthedocs.io/en/stable/api/generated/sksurv.linear_model.CoxPHSurvivalAnalysis.html 
     '''
     def __init__(self, config):
         '''
@@ -140,11 +194,11 @@ class CPH(BaseSksurv):
         super().__init__(config)
         self.eval_offset = 0
         self.model = CoxPHSurvivalAnalysis(n_iter=config.epochs, verbose=1)
-
-  
-class DeepHitCompeting(BasePycox):
+          
+    
+class DH(BasePycox):
     '''
-    DeepHit for competing events.
+    DeepHit model.
 
     Child of BasePycox.
     '''
@@ -156,41 +210,17 @@ class DeepHitCompeting(BasePycox):
         super().__init__(config)
         self.eval_offset = 0
         net = CauseSpecificNet(config)
-        optimizer = tt.optim.AdamWR(lr=0.01, 
-                                        decoupled_weight_decay=0.01,
-                                        cycle_eta_multiplier=0.8
-                                        )
+
+        # get appropriate DeepHit model
+        M = DeepHit if config.data == 'seer' else DeepHitSingle
+
         # initialize model
-        self.model = DeepHit(net, 
-                        optimizer, 
-                        alpha=0.2, 
-                        sigma=0.1,
+        self.model = M(net, 
+                        tt.optim.Adam, 
+                        alpha=config.alpha, 
+                        sigma=config.sigma, 
                         duration_index=config.duration_index
                         )
-            
-    
-class DeepHitSingleEvent(BasePycox):
-    '''
-    DeepHit for single events.
-
-    Child of BasePycox.
-    '''
-    def __init__(self, config):
-        '''
-        Args:
-            - config: configuration dictionary from experiments.configurations
-        '''
-        super().__init__(config)
-        self.eval_offset = 0
-        net = simple_dln(config)
-
-        # initialize model
-        self.model = DeepHitSingle(net, tt.optim.Adam, 
-                                alpha=0.2, 
-                                sigma=0.1, 
-                                duration_index=np.array(config['duration_index'],
-                                dtype='float32')
-                                )
         self.model.optimizer.set_lr(config.learning_rate)
 
 
@@ -209,11 +239,19 @@ class DeepSurv(BasePycox):
         self.eval_offset = 0
 
         config.out_feature = 1   # need to overwrite value set in load_data
-        net = simple_dln(config)
+
+        # define neural network
+        net = MLPVanilla(in_features=config.num_feature, 
+                        num_nodes=config.hidden_layers_size, 
+                        out_features=config.out_feature, 
+                        batch_norm=True, 
+                        dropout=config.dropout, 
+                        output_bias=True
+                        )
+        optim = tt.optim.Adam(lr=config.learning_rate, weight_decay=config.weight_decay)
 
         # initialize model
-        self.model = CoxPH(net, tt.optim.Adam)
-        self.model.optimizer.set_lr(config.learning_rate)
+        self.model = CoxPH(net, optim)
 
     # overwrite train method
     def train(self, data):
@@ -226,6 +264,9 @@ class DSM(BaseModel):
     Deep Survival Machines.
 
     Child of BaseModel.
+
+    References:
+        https://autonlab.github.io/auton-survival/models/dsm/index.html#auton_survival.models.dsm.DeepSurvivalMachines
     '''
     def __init__(self, config):
         '''
@@ -270,12 +311,22 @@ class PCHazard(BasePycox):
         self.eval_offset = 1
 
         # define neural network
-        net = simple_dln(config)
+        net = MLPVanilla(in_features=config.num_feature, 
+                        num_nodes=config.hidden_layers_size, 
+                        out_features=config.out_feature, 
+                        batch_norm=True, 
+                        dropout=config.dropout, 
+                        output_bias=True
+                        )
+
+        # AdamWR optimizer
+        optimizer = tt.optim.AdamWR(lr=config.learning_rate, 
+                                    decoupled_weight_decay=config.decoupled_weight_decay,
+                                    cycle_multiplier=config.cycle_multiplier
+                                    )
 
         # initalize model
-        self.model = PCH(net, tt.optim.Adam, duration_index=np.array(config['duration_index'], dtype='float32'))
-        self.model.optimizer.set_lr(config.learning_rate)
-
+        self.model = PCH(net, optimizer, duration_index=np.array(config['duration_index'], dtype='float32'))
 
 
 class RSF(BaseSksurv):
@@ -283,6 +334,9 @@ class RSF(BaseSksurv):
     Random Survival Forests.
 
     Child of BaseSksurv.
+
+    References:
+        https://scikit-survival.readthedocs.io/en/stable/api/generated/sksurv.ensemble.RandomSurvivalForest.html
     '''
     def __init__(self, config):
         '''
@@ -293,7 +347,7 @@ class RSF(BaseSksurv):
         self.eval_offset = 0
         self.model = RandomSurvivalForest(n_estimators=config.epochs, 
                                             verbose=1,
-                                            max_depth=4,
+                                            max_depth=config.max_depth,
                                             n_jobs=-1
                                             )
 
@@ -317,7 +371,7 @@ class SurvTRACE(BaseModel):
         super().__init__()
         self.eval_offset = 1
         try:
-            self.variant_name = config.model.split('_')[1]
+            self.variant_name = config.model.split('_')[0].split('-')[1]
         except IndexError:
             self.variant_name = ''
         self.hyperparameters = {
@@ -344,7 +398,7 @@ class SurvTRACE(BaseModel):
             metrics_list = [NLLPCHazardLoss(), BCELoss(), MSELoss()]
 
         # initialize trainer
-        self.trainer = Trainer(self.model, metrics=metrics_list)
+        self.trainer = Trainer(self.model, metrics=metrics_list, gamma1=config.gamma1, gamma2=config.gamma2)
 
 
     def train(self, data: Data):

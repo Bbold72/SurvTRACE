@@ -243,7 +243,7 @@ class BERTAdam(Optimizer):
 ############################
 
 class Trainer:
-    def __init__(self, model, metrics=None):
+    def __init__(self, model, metrics=None, gamma1=1, gamma2=1):
         '''metrics must start from NLLPCHazardLoss, then be others
         '''
         self.model = model
@@ -251,6 +251,10 @@ class Trainer:
             self.metrics = [NLLPCHazardLoss(),]
         else:
             self.metrics = metrics
+
+        # controls contribution of MTL to loss
+        self.gamma1 = gamma1
+        self.gamma2 = gamma2
 
         self.train_logs = defaultdict(list)
         self.get_target = lambda df: (df['duration'].values, df['event'].values)
@@ -294,7 +298,7 @@ class Trainer:
         # assign no weight decay on these parameters
         no_decay = ['bias', 'LayerNorm.bias', 'LayerNorm.weight']
         param_optimizer = list(self.model.named_parameters())
-        # print(param_optimizer)
+
         optimizer_grouped_parameters = [
             {'params': [p for n, p in param_optimizer if not any(nd in n for nd in no_decay)], 'weight_decay': weight_decay},
             {'params': [p for n, p in param_optimizer if any(nd in n for nd in no_decay)], 'weight_decay': 0.0}
@@ -336,13 +340,19 @@ class Trainer:
                 # batch_y_train[:, 0] - quantile/time
                 # batch_y_train[:, 1] - event indicator
                 # batch_y_train[:, 2] - proportion
-                batch_loss = self.metrics[0](phi[1], batch_y_train[:,0].long(), batch_y_train[:,1].long(), batch_y_train[:,2].float(), reduction="mean")
+                
+                # try NLLPCHazardLoss else NLLLogistiHazardLoss
+                try:
+                    # IPS
+                    batch_loss = self.metrics[0](phi[1], batch_y_train[:,0].long(), batch_y_train[:,1].long(), batch_y_train[:,2].float(), reduction="mean")
+                except:
+                    # w/o IPS
+                    batch_loss = self.metrics[0](phi[1], batch_y_train[:,0].long(), batch_y_train[:,1].long())
 
                 # add in mtl
                 if self.model.has_mtl: 
-                    batch_loss += self.metrics[1](phi[2].squeeze(-1), batch_y_train[:, 1].float()) # event
-                    batch_loss += self.metrics[2](phi[3].squeeze(-1), batch_y_train[:, 0].float()) # time
-
+                    batch_loss += self.gamma1*(self.metrics[1](phi[2].squeeze(-1), batch_y_train[:, 1].float())) # event
+                    batch_loss += self.gamma2*(self.metrics[2](phi[3].squeeze(-1), batch_y_train[:, 0].float())) # time
 
                 batch_loss.backward()
                 optimizer.step()
@@ -355,8 +365,13 @@ class Trainer:
                 self.model.eval()
                 with torch.no_grad():
                     phi_val = self.model.predict(tensor_val, val_batch_size)
-                
-                val_loss = self.metrics[0](phi_val, tensor_y_val[:,0].long(), tensor_y_val[:,1].long(), tensor_y_val[:,2].float())
+                try:
+                    # IPS
+                    val_loss = self.metrics[0](phi_val, tensor_y_val[:,0].long(), tensor_y_val[:,1].long(), tensor_y_val[:,2].float())
+                except:
+                    # w/o IPS
+                    val_loss = self.metrics[0](phi_val, tensor_y_val[:,0].long(), tensor_y_val[:,1].long())
+
                 print("[Train-{}]: {}".format(epoch, epoch_loss))
                 print("[Val-{}]: {}".format(epoch, val_loss.item()))
                 val_loss_list.append(val_loss.item())
@@ -396,7 +411,7 @@ class Trainer:
         # assign no weight decay on these parameters
         no_decay = ['bias', 'LayerNorm.bias', 'LayerNorm.weight']
         param_optimizer = list(self.model.named_parameters())
-        # print(list(self.model.named_parameters()))
+
         optimizer_grouped_parameters = [
             {'params': [p for n, p in param_optimizer if not any(nd in n for nd in no_decay)], 'weight_decay': weight_decay},
             {'params': [p for n, p in param_optimizer if any(nd in n for nd in no_decay)], 'weight_decay': 0.0}
@@ -451,7 +466,6 @@ class Trainer:
                             batch_loss = self.metrics[0](phi[1], batch_y_train[:,0].long(), batch_y_train[:,1].long(), batch_y_train[:,2].float())
                         except:
                             batch_loss = self.metrics[0](phi[1], batch_y_train[:,0].long(), batch_y_train[:,1].long())
-
                     else:
                         # try NLLPCHazardLoss else NLLLogistiHazardLoss
                         try:
@@ -459,15 +473,14 @@ class Trainer:
                             batch_loss += self.metrics[0](phi[1], batch_y_train[:,0].long(), batch_y_train[:,1].long(), batch_y_train[:,2].float())
                         except:
                             batch_loss += self.metrics[0](phi[1], batch_y_train[:,0].long(), batch_y_train[:,1].long())
-                    
+
                 # add MTL
                 if self.model.has_mtl:
                     batch_y_event_train = tensor_y_train['risk_0'][batch_idx*batch_size:(batch_idx+1)*batch_size][:,1] + \
                         tensor_y_train['risk_1'][batch_idx*batch_size:(batch_idx+1)*batch_size][:,1]     # see if any event has happened
-                    batch_loss += self.metrics[1](phi[2].squeeze(-1), batch_y_event_train.float())       # event
-                    batch_loss += self.metrics[2](phi[3].squeeze(-1), batch_y_train[:, 0].float())       # time - event/censoring time same for each risk
+                    batch_loss += self.gamma1*(self.metrics[1](phi[2].squeeze(-1), batch_y_event_train.float()))       # event
+                    batch_loss += self.gamma2*(self.metrics[2](phi[3].squeeze(-1), batch_y_train[:, 0].float()))       # time - event/censoring time same for each risk
 
-                    
 
                 batch_loss.backward()
                 optimizer.step()
@@ -485,7 +498,7 @@ class Trainer:
                             val_loss += self.metrics[0](phi_val, tensor_y_val["risk_{}".format(risk)][:,0].long(), tensor_y_val["risk_{}".format(risk)][:,1].long(), tensor_y_val["risk_{}".format(risk)][:,2].float())
                         except:
                             val_loss += self.metrics[0](phi_val, tensor_y_val["risk_{}".format(risk)][:,0].long(), tensor_y_val["risk_{}".format(risk)][:,1].long())
-
+            
                 print("[Train-{}]: {}".format(epoch, epoch_loss / (batch_idx+1)))
                 print("[Val-{}]: {}".format(epoch, val_loss.item()))
                 val_loss_list.append(val_loss.item())
