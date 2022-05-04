@@ -13,16 +13,12 @@ from sksurv.ensemble import RandomSurvivalForest
 
 from survtrace.model import SurvTraceSingle, SurvTraceMulti
 from survtrace.train_utils import Trainer
-
 from survtrace.losses import NLLLogistiHazardLoss, NLLPCHazardLoss
 
 import torch
 from torch.nn import BCELoss, MSELoss
-
-from torch.nn import BCELoss, MSELoss, ReLU
 from torchtuples.practical import MLPVanilla
 
-from experiments.dlns import simple_dln, simple_dln_sequential, CauseSpecificNet
 from experiments.data_class import Data
 
 class BaseModel(ABC):
@@ -186,6 +182,9 @@ class CPH(BaseSksurv):
     Cox Proportional Hazards
 
     Child of BaseSksurv.
+
+    References:
+        https://scikit-survival.readthedocs.io/en/stable/api/generated/sksurv.linear_model.CoxPHSurvivalAnalysis.html 
     '''
     def __init__(self, config):
         '''
@@ -265,6 +264,9 @@ class DSM(BaseModel):
     Deep Survival Machines.
 
     Child of BaseModel.
+
+    References:
+        https://autonlab.github.io/auton-survival/models/dsm/index.html#auton_survival.models.dsm.DeepSurvivalMachines
     '''
     def __init__(self, config):
         '''
@@ -332,6 +334,9 @@ class RSF(BaseSksurv):
     Random Survival Forests.
 
     Child of BaseSksurv.
+
+    References:
+        https://scikit-survival.readthedocs.io/en/stable/api/generated/sksurv.ensemble.RandomSurvivalForest.html
     '''
     def __init__(self, config):
         '''
@@ -342,7 +347,7 @@ class RSF(BaseSksurv):
         self.eval_offset = 0
         self.model = RandomSurvivalForest(n_estimators=config.epochs, 
                                             verbose=1,
-                                            max_depth=4,
+                                            max_depth=config.max_depth,
                                             n_jobs=-1
                                             )
 
@@ -366,7 +371,7 @@ class SurvTRACE(BaseModel):
         super().__init__()
         self.eval_offset = 1
         try:
-            self.variant_name = config.model.split('_')[1]
+            self.variant_name = config.model.split('_')[0].split('-')[1]
         except IndexError:
             self.variant_name = ''
         self.hyperparameters = {
@@ -393,7 +398,7 @@ class SurvTRACE(BaseModel):
             metrics_list = [NLLPCHazardLoss(), BCELoss(), MSELoss()]
 
         # initialize trainer
-        self.trainer = Trainer(self.model, metrics=metrics_list)
+        self.trainer = Trainer(self.model, metrics=metrics_list, gamma1=config.gamma1, gamma2=config.gamma2)
 
 
     def train(self, data: Data):

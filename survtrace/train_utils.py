@@ -243,7 +243,7 @@ class BERTAdam(Optimizer):
 ############################
 
 class Trainer:
-    def __init__(self, model, metrics=None):
+    def __init__(self, model, metrics=None, gamma1=1, gamma2=1):
         '''metrics must start from NLLPCHazardLoss, then be others
         '''
         self.model = model
@@ -251,6 +251,10 @@ class Trainer:
             self.metrics = [NLLPCHazardLoss(),]
         else:
             self.metrics = metrics
+
+        # controls contribution of MTL to loss
+        self.gamma1 = gamma1
+        self.gamma2 = gamma2
 
         self.train_logs = defaultdict(list)
         self.get_target = lambda df: (df['duration'].values, df['event'].values)
@@ -347,8 +351,8 @@ class Trainer:
 
                 # add in mtl
                 if self.model.has_mtl: 
-                    batch_loss += self.metrics[1](phi[2].squeeze(-1), batch_y_train[:, 1].float()) # event
-                    batch_loss += self.metrics[2](phi[3].squeeze(-1), batch_y_train[:, 0].float()) # time
+                    batch_loss += self.gamma1*(self.metrics[1](phi[2].squeeze(-1), batch_y_train[:, 1].float())) # event
+                    batch_loss += self.gamma2*(self.metrics[2](phi[3].squeeze(-1), batch_y_train[:, 0].float())) # time
 
                 batch_loss.backward()
                 optimizer.step()
@@ -474,8 +478,8 @@ class Trainer:
                 if self.model.has_mtl:
                     batch_y_event_train = tensor_y_train['risk_0'][batch_idx*batch_size:(batch_idx+1)*batch_size][:,1] + \
                         tensor_y_train['risk_1'][batch_idx*batch_size:(batch_idx+1)*batch_size][:,1]     # see if any event has happened
-                    batch_loss += self.metrics[1](phi[2].squeeze(-1), batch_y_event_train.float())       # event
-                    batch_loss += self.metrics[2](phi[3].squeeze(-1), batch_y_train[:, 0].float())       # time - event/censoring time same for each risk
+                    batch_loss += self.gamma1*(self.metrics[1](phi[2].squeeze(-1), batch_y_event_train.float()))       # event
+                    batch_loss += self.gamma2*(self.metrics[2](phi[3].squeeze(-1), batch_y_train[:, 0].float()))       # time - event/censoring time same for each risk
 
 
                 batch_loss.backward()

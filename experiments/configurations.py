@@ -279,7 +279,9 @@ survtrace_metabric = EasyDict(
         'batch_size': batch_size_metabric,
         'weight_decay': 1e-4,
         'learning_rate': 1e-3,
-        'epochs': 100
+        'epochs': 100,
+        'gamma1': 1,
+        'gamma2': 1
     }
 )
 
@@ -316,7 +318,9 @@ survtrace_support = EasyDict(
         'batch_size': batch_size_support,
         'weight_decay': 0,
         'learning_rate': 1e-3,
-        'epochs': 100
+        'epochs': 100,
+        'gamma1': 1,
+        'gamma2': 1
     }
 )
 
@@ -340,7 +344,7 @@ survtrace_seer = EasyDict(
         'num_event': 1, # only set when using SurvTraceMulti for competing risks
         'hidden_act': 'gelu',
         'attention_probs_dropout_prob': 0.1,
-        'early_stop_patience': 5,
+        'early_stop_patience': 10,
         'initializer_range': 0.02,
         'layer_norm_eps': 1e-12,
         'max_position_embeddings': 512, # # no use
@@ -355,6 +359,8 @@ survtrace_seer = EasyDict(
         'batch_size': batch_size_seer,
         'weight_decay': 0,
         'learning_rate': 1e-4,
-        'epochs': 100
+        'epochs': 100,
+        'gamma1': 1,
+        'gamma2': 1
     }
 )
