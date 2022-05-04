@@ -74,7 +74,7 @@ def run_experiment(dataset_name: str, model_name: str, num_runs=10, event_to_cen
         event_name = ''
     print(f'Running {config.model}{event_name} on {dataset_name}')
 
-    config.epochs=1
+    # config.epochs=1
 
 
     # get corresponding model
@@ -139,13 +139,13 @@ def run_experiment(dataset_name: str, model_name: str, num_runs=10, event_to_cen
 def main():
     # models that require an event to be censored for competing events
     cause_specific_models = set(['CPH', 'DeepSurv', 'PCHazard', 'RSF'])  
-    number_runs = 1   # number of runs for each model
+    number_runs = 10   # number of runs for each model
 
-    datasets = ['metabric', 'support', 'seer']
+    datasets = ['metabric', 'support']
     # datasets = ['metabric', 'support']
     models = ['CPH', 'DeepHit', 'DeepSurv', 'DSM', 'PCHazard', 'RSF', \
                 'survtrace', 'survtrace-woMTL', 'survtrace-woIPS', 'survtrace-woIPS-woMTL']
-    models = ['survtrace-woMTL', 'survtrace-woIPS', 'survtrace-woIPS-woMTL']
+    models = ['survtrace', 'survtrace-woMTL', 'survtrace-woIPS', 'survtrace-woIPS-woMTL']
 
     for model_name in models:
         for dataset_name in datasets:
