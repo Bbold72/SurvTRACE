@@ -141,8 +141,10 @@ def main():
     cause_specific_models = set(['CPH', 'DeepSurv', 'PCHazard', 'RSF'])  
     number_runs = 10   # number of runs for each model
 
-    datasets = ['metabric', 'support']
-    # datasets = ['metabric', 'support']
+
+
+    datasets = ['metabric', 'support', 'seer']
+    # datasets = ['seer']
     models = ['CPH', 'DeepHit', 'DeepSurv', 'DSM', 'PCHazard', 'RSF', \
                 'survtrace', 'survtrace-woMTL', 'survtrace-woIPS', 'survtrace-woIPS-woMTL']
     models = ['survtrace', 'survtrace-woMTL', 'survtrace-woIPS', 'survtrace-woIPS-woMTL']
