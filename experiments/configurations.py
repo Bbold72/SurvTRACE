@@ -121,12 +121,12 @@ DeepSurv_seer = EasyDict({
     'epochs': 100,
 
     # Network
-    'hidden_layers_size': [64, 64],
+    'hidden_layers_size': [32, 32],
     'dropout': 0.1,
 
     # Adam
     'learning_rate': 1e-2,
-    'weight_decay': 0.1,
+    'weight_decay': 0,
 })
 
 
