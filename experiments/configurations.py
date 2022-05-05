@@ -121,12 +121,12 @@ DeepSurv_seer = EasyDict({
     'epochs': 100,
 
     # Network
-    'hidden_layers_size': [64, 64],
+    'hidden_layers_size': [32, 32],
     'dropout': 0.1,
 
     # Adam
     'learning_rate': 1e-2,
-    'weight_decay': 0.1,
+    'weight_decay': 0,
 })
 
 
@@ -265,7 +265,7 @@ survtrace_metabric = EasyDict(
         'num_event': 1, # only set when using SurvTraceMulti for competing risks
         'hidden_act': 'gelu',
         'attention_probs_dropout_prob': 0.1,
-        'early_stop_patience': 10,
+        'early_stop_patience': 20,
         'initializer_range': 0.001,
         'layer_norm_eps': 1e-12,
         'max_position_embeddings': 512, # # no use
@@ -281,7 +281,7 @@ survtrace_metabric = EasyDict(
         'learning_rate': 1e-3,
         'epochs': 100,
         'gamma1': 1,
-        'gamma2': 1
+        'gamma2': 0.3
     }
 )
 
@@ -304,7 +304,7 @@ survtrace_support = EasyDict(
         'num_event': 1, # only set when using SurvTraceMulti for competing risks
         'hidden_act': 'gelu',
         'attention_probs_dropout_prob': 0.1,
-        'early_stop_patience': 10,
+        'early_stop_patience': 20,
         'initializer_range': 0.001,
         'layer_norm_eps': 1e-12,
         'max_position_embeddings': 512, # # no use
@@ -320,7 +320,7 @@ survtrace_support = EasyDict(
         'learning_rate': 1e-3,
         'epochs': 100,
         'gamma1': 1,
-        'gamma2': 1
+        'gamma2': 0.3
     }
 )
 
@@ -344,7 +344,7 @@ survtrace_seer = EasyDict(
         'num_event': 1, # only set when using SurvTraceMulti for competing risks
         'hidden_act': 'gelu',
         'attention_probs_dropout_prob': 0.1,
-        'early_stop_patience': 10,
+        'early_stop_patience': 8,
         'initializer_range': 0.02,
         'layer_norm_eps': 1e-12,
         'max_position_embeddings': 512, # # no use
@@ -361,6 +361,6 @@ survtrace_seer = EasyDict(
         'learning_rate': 1e-4,
         'epochs': 100,
         'gamma1': 1,
-        'gamma2': 1
+        'gamma2': 0.8
     }
 )

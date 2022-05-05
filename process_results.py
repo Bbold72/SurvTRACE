@@ -292,6 +292,9 @@ def main():
         print(f"Percent of Results within {percent}% of Authors':", round((num_within_percent/N)*100, 0))
     
     list(map(within_percent, [5, 3, 1]))
+    num_above = sum(compare_df['mean'] > 0)
+    print('Number of results above authors:', num_above)
+    print('Percent of results above authors:', round((num_above/N)*100, 0))
 
 if __name__ == '__main__':
     main()

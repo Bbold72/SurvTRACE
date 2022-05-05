@@ -370,10 +370,12 @@ class SurvTRACE(BaseModel):
         '''
         super().__init__()
         self.eval_offset = 1
+
         try:
-            self.variant_name = config.model.split('_')[0].split('-')[1]
+            self.variant_name = config.model[len('survtrace-'):]
         except IndexError:
             self.variant_name = ''
+
         self.hyperparameters = {
             'batch_size': config.batch_size,
             'weight_decay': config.weight_decay,
