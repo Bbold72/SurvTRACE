@@ -20,7 +20,7 @@ class EarlyStopping:
         Args:
             patience (int): How long to wait after last time validation loss improved.
                             Default: 7
-            verbose (bool): If True, prints a message for each validation loss improvement. 
+            verbose (bool): If True, prints a message for each validation loss improvement.
                             Default: False
             delta (float): Minimum change in the monitored quantity to qualify as an improvement.
                             Default: 0
@@ -70,7 +70,7 @@ def pad_col(input, val=0, where='end'):
         return torch.cat([pad, input], dim=1)
     raise ValueError(f"Need `where` to be 'start' or 'end', got {where}")
 
-    
+
 ############################
 # optimizer #
 ############################
@@ -290,7 +290,7 @@ class Trainer:
             durations_val, events_val = self.get_target(df_y_val)
             tensor_val = torch.tensor(val_set[0].values)
             tensor_y_val = torch.tensor(val_set[1].values)
-        
+
         if self.use_gpu:
             tensor_val = tensor_val.cuda()
             tensor_y_val = tensor_y_val.cuda()
@@ -303,9 +303,9 @@ class Trainer:
             {'params': [p for n, p in param_optimizer if not any(nd in n for nd in no_decay)], 'weight_decay': weight_decay},
             {'params': [p for n, p in param_optimizer if any(nd in n for nd in no_decay)], 'weight_decay': 0.0}
         ]
-        optimizer = BERTAdam(optimizer_grouped_parameters, 
-            learning_rate, 
-            weight_decay_rate=weight_decay, 
+        optimizer = BERTAdam(optimizer_grouped_parameters,
+            learning_rate,
+            weight_decay_rate=weight_decay,
             )
 
         if val_set is not None:
@@ -331,7 +331,7 @@ class Trainer:
 
                 batch_train = tensor_train[batch_idx*batch_size:(batch_idx+1)*batch_size]
                 batch_y_train = tensor_y_train[batch_idx*batch_size:(batch_idx+1)*batch_size]
-                
+
                 batch_x_cat = batch_train[:, :self.model.config.num_categorical_feature].long()
                 batch_x_num = batch_train[:, self.model.config.num_categorical_feature:].float()
 
@@ -340,7 +340,7 @@ class Trainer:
                 # batch_y_train[:, 0] - quantile/time
                 # batch_y_train[:, 1] - event indicator
                 # batch_y_train[:, 2] - proportion
-                
+
                 # try NLLPCHazardLoss else NLLLogistiHazardLoss
                 try:
                     # IPS
@@ -350,7 +350,7 @@ class Trainer:
                     batch_loss = self.metrics[0](phi[1], batch_y_train[:,0].long(), batch_y_train[:,1].long())
 
                 # add in mtl
-                if self.model.has_mtl: 
+                if self.model.has_mtl:
                     batch_loss += self.gamma1*(self.metrics[1](phi[2].squeeze(-1), batch_y_train[:, 1].float())) # event
                     batch_loss += self.gamma2*(self.metrics[2](phi[3].squeeze(-1), batch_y_train[:, 0].float())) # time
 
@@ -400,14 +400,16 @@ class Trainer:
         if val_set is not None:
             tensor_val = torch.tensor(val_set[0].values)
             tensor_y_val = dict()
+
             for risk in range(self.model.config.num_event):
-                tensor_y_val["risk_{}".format(risk)] = torch.tensor(val_set[1][["duration","event_{}".format(risk),"proportion"]].values).cuda()
+                tensor_y_val_key = "risk_{}".format(risk)
+                tensor_y_val[tensor_y_val_key] = torch.tensor(val_set[1][["duration","event_{}".format(risk),"proportion"]].values)
 
             if self.use_gpu:
                 tensor_val = tensor_val.cuda()
                 for key in tensor_y_val.keys():
                     tensor_y_val[key] = tensor_y_val[key].cuda()
-            
+
         # assign no weight decay on these parameters
         no_decay = ['bias', 'LayerNorm.bias', 'LayerNorm.weight']
         param_optimizer = list(self.model.named_parameters())
@@ -416,9 +418,9 @@ class Trainer:
             {'params': [p for n, p in param_optimizer if not any(nd in n for nd in no_decay)], 'weight_decay': weight_decay},
             {'params': [p for n, p in param_optimizer if any(nd in n for nd in no_decay)], 'weight_decay': 0.0}
         ]
-        optimizer = BERTAdam(optimizer_grouped_parameters, 
-            learning_rate, 
-            weight_decay_rate=weight_decay, 
+        optimizer = BERTAdam(optimizer_grouped_parameters,
+            learning_rate,
+            weight_decay_rate=weight_decay,
             )
 
         if val_set is not None:
@@ -440,7 +442,7 @@ class Trainer:
                 tensor_train = tensor_train.cuda()
                 for key in tensor_y_train.keys():
                     tensor_y_train[key] = tensor_y_train[key].cuda()
-            
+
             epoch_loss = 0
             for batch_idx in range(num_train_batch):
                 optimizer.zero_grad()
@@ -498,7 +500,7 @@ class Trainer:
                             val_loss += self.metrics[0](phi_val, tensor_y_val["risk_{}".format(risk)][:,0].long(), tensor_y_val["risk_{}".format(risk)][:,1].long(), tensor_y_val["risk_{}".format(risk)][:,2].float())
                         except:
                             val_loss += self.metrics[0](phi_val, tensor_y_val["risk_{}".format(risk)][:,0].long(), tensor_y_val["risk_{}".format(risk)][:,1].long())
-            
+
                 print("[Train-{}]: {}".format(epoch, epoch_loss / (batch_idx+1)))
                 print("[Val-{}]: {}".format(epoch, val_loss.item()))
                 val_loss_list.append(val_loss.item())
@@ -513,7 +515,7 @@ class Trainer:
 
         return train_loss_list, val_loss_list, epoch+1
 
-    def fit(self, 
+    def fit(self,
         train_set,
         val_set=None,
         batch_size=64,
@@ -541,7 +543,7 @@ class Trainer:
                     val_batch_size=val_batch_size,
                     **kwargs,
             )
-        
+
         elif self.model.config.num_event > 1:
             return self.train_multi_event(
                     train_set=train_set,
@@ -553,6 +555,6 @@ class Trainer:
                     val_batch_size=val_batch_size,
                     **kwargs,
             )
-        
+
         else:
             raise ValueError
