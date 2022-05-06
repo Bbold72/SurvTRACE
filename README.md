@@ -59,7 +59,36 @@ For this project we use different datasets to run our experiments.
 4. Move the csv file to **./data/raw/seer_raw.csv**, then run script to create the processed data, as
 
    ```shell
-   make data
+   make seer
    ```
 
    we will obtain the processed seer data named **seer_processed.csv** located in **./data/processed/**.
+
+### Running the experiments
+
+You can run all the steps for creating the results with the following command.
+
+```shell
+make run
+```
+
+Alternatively you could do each step separately:
+
+1. Clean previous generated files, if they exist.
+
+   ```shell
+   make clean
+   ```
+
+2. Process SEER dataset.
+
+   ```shell
+   make seer
+   ```
+
+3. Generate datasets. By default it does 10 runs, but you can change the NUM_RUNS argument.
+
+   ```shell
+   make datasets [-e NUM_RUNS=10]
+   ```
+
