@@ -3,8 +3,11 @@ from sklearn.preprocessing import KBinsDiscretizer, LabelEncoder, StandardScaler
 import numpy as np
 import pandas as pd
 import pdb
+import os
 
 from .utils import LabelTransform
+
+ROOT_DIR = os.path.realpath(os.path.join(os.path.dirname(__file__), '..'))
 
 def load_data(config):
     '''load data, return updated configuration.
@@ -25,18 +28,18 @@ def load_data(config):
         cols_standardize = ['x0', 'x1', 'x2', 'x3', 'x8']
 
         df_feat = df.drop(["duration","event"],axis=1)
-        df_feat_standardize = df_feat[cols_standardize] 
+        df_feat_standardize = df_feat[cols_standardize]
         df_feat_standardize_disc = StandardScaler().fit_transform(df_feat_standardize)
         df_feat_standardize_disc = pd.DataFrame(df_feat_standardize_disc, columns=cols_standardize)
 
         # must be categorical feature ahead of numerical features!
         df_feat = pd.concat([df_feat[cols_categorical], df_feat_standardize_disc], axis=1)
-        
+
         vocab_size = 0
         for _,feat in enumerate(cols_categorical):
             df_feat[feat] = LabelEncoder().fit_transform(df_feat[feat]).astype(float) + vocab_size
             vocab_size = df_feat[feat].max() + 1
-                
+
         # get the largest duraiton time
         max_duration_idx = df["duration"].argmax()
         df_test = df_feat.drop(max_duration_idx).sample(frac=0.3)
@@ -52,7 +55,7 @@ def load_data(config):
         df_y_val = pd.DataFrame({"duration": y[0][df_val.index], "event": y[1][df_val.index],  "proportion": y[2][df_val.index]}, index=df_val.index)
         # df_y_test = pd.DataFrame({"duration": y[0][df_test.index], "event": y[1][df_test.index],  "proportion": y[2][df_test.index]}, index=df_test.index)
         df_y_test = pd.DataFrame({"duration": df['duration'].loc[df_test.index], "event": df['event'].loc[df_test.index]})
-    
+
     elif data == "support":
         df = support.read_df()
         times = np.quantile(df["duration"][df["event"]==1.0], horizons).tolist()
@@ -60,12 +63,12 @@ def load_data(config):
         cols_standardize = ['x0', 'x7', 'x8', 'x9', 'x10', 'x11', 'x12', 'x13']
 
         df_feat = df.drop(["duration","event"],axis=1)
-        df_feat_standardize = df_feat[cols_standardize]        
+        df_feat_standardize = df_feat[cols_standardize]
         df_feat_standardize_disc = StandardScaler().fit_transform(df_feat_standardize)
         df_feat_standardize_disc = pd.DataFrame(df_feat_standardize_disc, columns=cols_standardize)
 
         df_feat = pd.concat([df_feat[cols_categorical], df_feat_standardize_disc], axis=1)
-        
+
         vocab_size = 0
         for i,feat in enumerate(cols_categorical):
             df_feat[feat] = LabelEncoder().fit_transform(df_feat[feat]).astype(float) + vocab_size
@@ -91,10 +94,10 @@ def load_data(config):
         df_y_test = pd.DataFrame({"duration": df['duration'].loc[df_test.index], "event": df['event'].loc[df_test.index]})
 
 
-    # TODO: for cause-specfic analysis, may need to make quantiles based on each event separately 
+    # TODO: for cause-specfic analysis, may need to make quantiles based on each event separately
     elif data == "seer":
-        PATH_DATA = "./data/seer_processed.csv"
-        df = pd.read_csv(PATH_DATA)
+        seer_data = os.path.join(ROOT_DIR, 'data', 'processed', 'seer_processed.csv')
+        df = pd.read_csv(seer_data)
 
         times = np.quantile(df["duration"][df['event_breast']==1.0], horizons).tolist()
         event_list = ["event_breast", "event_heart"]
@@ -109,7 +112,7 @@ def load_data(config):
 
         df_feat = df.drop(["duration","event_breast", "event_heart"],axis=1)
 
-        df_feat_standardize = df_feat[cols_standardize]        
+        df_feat_standardize = df_feat[cols_standardize]
         df_feat_standardize_disc = StandardScaler().fit_transform(df_feat_standardize)
         df_feat_standardize_disc = pd.DataFrame(df_feat_standardize_disc, columns=cols_standardize)
         df_feat = pd.concat([df_feat[cols_categorical], df_feat_standardize_disc], axis=1)
@@ -118,7 +121,7 @@ def load_data(config):
         for i,feat in enumerate(cols_categorical):
             df_feat[feat] = LabelEncoder().fit_transform(df_feat[feat]).astype(float) + vocab_size
             vocab_size = df_feat[feat].max() + 1
-        
+
         # get the largest duraiton time
         max_duration_idx = df["duration"].argmax()
         df_test = df_feat.drop(max_duration_idx).sample(frac=0.3)
