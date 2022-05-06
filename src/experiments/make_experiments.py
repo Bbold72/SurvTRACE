@@ -12,10 +12,8 @@ from src.utils.utils import export_results, update_run
 logger = logging.getLogger(__name__)
 
 DATASETS = ['metabric', 'support', 'seer']
-# MODELS = ['CPH', 'DeepHit', 'DeepSurv', 'DSM', 'PCHazard', 'RSF', \
-#                 'survtrace', 'survtrace-woMTL', 'survtrace-woIPS', 'survtrace-woIPS-woMTL']
-#                 'survtrace', 'survtrace-woMTL', 'survtrace-woIPS', 'survtrace-woIPS-woMTL']
-MODELS = ['survtrace', 'survtrace-woMTL', 'survtrace-woIPS', 'survtrace-woIPS-woMTL']
+MODELS = ['CPH', 'DeepHit', 'DeepSurv', 'DSM', 'PCHazard', 'RSF', \
+                'survtrace', 'survtrace-woMTL', 'survtrace-woIPS', 'survtrace-woIPS-woMTL']
 CAUSE_SPECIFIC_MODELS = set(['CPH', 'DeepSurv', 'PCHazard', 'RSF'])
 MAP_NAME_TO_MODEL = {
     'CPH': CPH,
