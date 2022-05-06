@@ -22,7 +22,7 @@ data:
 	$(PYTHON_INTERPRETER) src/data/process_seer.py
 
 ## Delete all compiled Python files and processed datasets
-clean: 
+clean:
 	find . -type f -name "*.py[co]" -delete
 	find . -type d -name "__pycache__" -delete
-	find data/processed -type f -name "*.csv" -delete
+	find data/processed ! -name '.gitkeep' -type f -exec rm -f {} +
