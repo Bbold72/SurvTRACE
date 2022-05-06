@@ -4,14 +4,14 @@ import pickle
 import logging
 from pathlib import Path
 from easydict import EasyDict
-from survtrace.dataset import load_data
+from src.models.survtrace.dataset import load_data
 
 logger = logging.getLogger(__name__)
 
 # duration quantiles
 HORIZONS = [.25, .5, .75]
 DATASETS = ['metabric', 'support', 'seer']
-ROOT_DIR = os.path.realpath(os.path.dirname(__file__))
+ROOT_DIR = os.path.realpath(os.path.join(os.path.dirname(__file__), '..', '..'))
 DATA_DIR = os.path.join(ROOT_DIR, 'data','processed')
 
 

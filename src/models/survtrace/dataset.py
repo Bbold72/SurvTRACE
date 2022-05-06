@@ -7,7 +7,8 @@ import os
 
 from .utils import LabelTransform
 
-ROOT_DIR = os.path.realpath(os.path.join(os.path.dirname(__file__), '..'))
+ROOT_DIR = os.path.realpath(os.path.join(os.path.dirname(__file__), '..', '..', '..'))
+SEER_DATA = os.path.join(ROOT_DIR, 'data', 'processed', 'seer_processed.csv')
 
 def load_data(config):
     '''load data, return updated configuration.
@@ -96,8 +97,7 @@ def load_data(config):
 
     # TODO: for cause-specfic analysis, may need to make quantiles based on each event separately
     elif data == "seer":
-        seer_data = os.path.join(ROOT_DIR, 'data', 'processed', 'seer_processed.csv')
-        df = pd.read_csv(seer_data)
+        df = pd.read_csv(SEER_DATA)
 
         times = np.quantile(df["duration"][df['event_breast']==1.0], horizons).tolist()
         event_list = ["event_breast", "event_heart"]
