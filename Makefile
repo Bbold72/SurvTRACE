@@ -17,7 +17,7 @@ endif
 #################################################################################
 
 ## Make Dataset
-make: clean run experiments results
+make: clean data run experiments results
 
 data: seer dataset
 
