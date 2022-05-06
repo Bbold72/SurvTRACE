@@ -98,3 +98,8 @@ Alternatively you could do each step separately:
    make experiments [-e NUM_RUNS=10]
    ```
 
+5. Print results.
+
+   ```shell
+   make results
+   ```

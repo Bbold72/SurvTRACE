@@ -5,10 +5,13 @@ import logging
 import numpy as np
 import pandas as pd
 from pandas.api.types import CategoricalDtype
-from pathlib import Path
 from typing import Tuple
 
 logger = logging.getLogger(__name__)
+
+ROOT_DIR = os.path.realpath(os.path.join(os.path.dirname(__file__), '..', '..'))
+RESULTS_DIR = os.path.join(ROOT_DIR, 'results')
+AUTHOR_RESULTS_PATH = os.path.join(ROOT_DIR, 'data','external', 'author_results.csv')
 
 
 # TODO: maybe export aggregated results either in this function or within main
@@ -57,9 +60,8 @@ def aggregate_raw_data() -> pd.DataFrame:
         A dataframe of aggregated results of all experiments.
     '''
     df_list = []
-    for file_name in os.listdir(Path('results')):
-        print(file_name)
-        with open(Path('results', file_name), 'rb') as f:
+    for file_name in os.listdir(RESULTS_DIR):
+        with open(os.path.join(RESULTS_DIR, file_name), 'rb') as f:
             result = pickle.load(f)
         result = pd.DataFrame(result)
         file_name = file_name.split('.')[0]
@@ -226,7 +228,7 @@ def compare_author_results(df: pd.DataFrame) -> pd.DataFrame:
     Returns:
         - df (pd.Dataframe): dataframe of comarision in long format.
     '''
-    df_authors = pd.read_csv('author_results.csv')
+    df_authors = pd.read_csv(AUTHOR_RESULTS_PATH)
     df['event_num'] = df['event_num'].apply(float)
 
     # merge our results on authors' results

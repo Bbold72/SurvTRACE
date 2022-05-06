@@ -1,4 +1,4 @@
-.PHONY: data
+.PHONY: clean run experiments results
 
 #################################################################################
 # GLOBALS                                                                       #
@@ -17,7 +17,7 @@ endif
 #################################################################################
 
 ## Make Dataset
-make: clean run experiments
+make: clean run experiments results
 
 data: seer dataset
 
@@ -32,6 +32,10 @@ dataset:
 experiments:
 	@echo ">>> Running experiments with $(NUM_RUNS) runs."
 	@$(PYTHON_INTERPRETER) src/make_experiments.py --num_runs=$(NUM_RUNS)
+
+result:
+	@echo ">>> Printint results."
+	@$(PYTHON_INTERPRETER) src/results/make_results.py
 
 ## Delete all compiled Python files and processed datasets
 clean:
