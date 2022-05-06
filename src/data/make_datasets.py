@@ -22,7 +22,7 @@ def make_data_run(num_runs):
     Clean datafile and split into training, validation, and test sets.
     '''
     for dataset in DATASETS:
-        logger.info(f'Creating {dataset} data for {runs} runs')
+        logger.info(f'Creating {dataset} data for {num_runs} runs')
 
         # define data conifg to pass to load_data
         data_config = EasyDict({
@@ -35,7 +35,7 @@ def make_data_run(num_runs):
         if not os.path.isdir(dataset_dir):
             os.makedirs(dataset_dir)
 
-        for i in range(runs):
+        for i in range(num_runs):
             df, df_train, df_y_train, df_test, df_y_test, df_val, df_y_val = load_data(data_config)
 
             # export data for run as pickle file
