@@ -16,8 +16,8 @@ DATA_DIR = os.path.join(ROOT_DIR, 'data','processed')
 
 
 @click.command()
-@click.option('--runs', default=10, type=int, help='Number of runs')
-def make_data_run(runs):
+@click.option('--num_runs', default=10, type=int, help='Number of runs')
+def make_data_run(num_runs):
     '''
     Clean datafile and split into training, validation, and test sets.
     '''

@@ -29,7 +29,7 @@ seer:
 
 dataset:
 	@echo ">>> Creating Datasets with $(NUM_RUNS) runs."
-	@$(PYTHON_INTERPRETER) src/data/make_datasets.py --runs=$(NUM_RUNS)
+	@$(PYTHON_INTERPRETER) src/data/make_datasets.py --num_runs=$(NUM_RUNS)
 
 ## Delete all compiled Python files and processed datasets
 clean:
