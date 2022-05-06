@@ -5,7 +5,7 @@ import os
 
 from experiments.utils import df_to_event_time_array
 
-ROOT_DIR = os.path.realpath(os.path.join(os.path.dirname(__file__), '..'))
+ROOT_DIR = os.path.realpath(os.path.join(os.path.dirname(__file__), '..', '..'))
 DATA_DIR = os.path.join(ROOT_DIR, 'data/processed')
 
 class Data:
@@ -20,10 +20,10 @@ class Data:
         DATASET_DIR = os.path.join(DATA_DIR, dataset)
 
         # load data run
-        with open(os.path.join(DATASET_DIR, f'run_{run_num}'), 'rb') as f:
+        with open(os.path.join(DATASET_DIR, f'run_{run_num}.pickle'), 'rb') as f:
             data_tuple = pickle.load(f)
         self.df, self.df_train, self.df_y_train, self.df_test, self.df_y_test, self.df_val, self.df_y_val, config_data = data_tuple
-        
+
         # add values from data config to model config file
         for key, value in config_data.items():
             config[key] = value
@@ -57,7 +57,7 @@ class Data:
                     return df
 
                 self.df, self.df_y_train, self.df_y_val, self.df_y_test = map(make_event_col, [self.df, self.df_y_train, self.df_y_val, self.df_y_test])
-        
+
 
             # convet data to format necessary for pycox
             self.x_train = np.array(self.df_train, dtype='float32')

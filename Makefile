@@ -3,8 +3,6 @@
 #################################################################################
 # GLOBALS                                                                       #
 #################################################################################
-
-PROJECT_DIR := $(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 PYTHON_INTERPRETER = "python3"
 NUM_RUNS = 10
 
@@ -19,7 +17,7 @@ endif
 #################################################################################
 
 ## Make Dataset
-make: clean run
+make: clean run experiments
 
 data: seer dataset
 
@@ -30,6 +28,10 @@ seer:
 dataset:
 	@echo ">>> Creating Datasets with $(NUM_RUNS) runs."
 	@$(PYTHON_INTERPRETER) src/data/make_datasets.py --num_runs=$(NUM_RUNS)
+
+experiments:
+	@echo ">>> Running experiments with $(NUM_RUNS) runs."
+	@$(PYTHON_INTERPRETER) src/make_experiments.py --num_runs=$(NUM_RUNS)
 
 ## Delete all compiled Python files and processed datasets
 clean:

@@ -3,17 +3,17 @@
 from abc import ABC, abstractclassmethod
 from easydict import EasyDict
 import numpy as np
-import torchtuples as tt 
+import torchtuples as tt
 
-from auton_survival.models.dsm import DeepSurvivalMachines
+from src.models.auton_survival.models.dsm import DeepSurvivalMachines
 from sksurv.linear_model import CoxPHSurvivalAnalysis
 from pycox.models import CoxPH, DeepHitSingle, DeepHit
 from pycox.models import PCHazard as PCH
 from sksurv.ensemble import RandomSurvivalForest
 
-from survtrace.model import SurvTraceSingle, SurvTraceMulti
-from survtrace.train_utils import Trainer
-from survtrace.losses import NLLLogistiHazardLoss, NLLPCHazardLoss
+from src.models.survtrace.model import SurvTraceSingle, SurvTraceMulti
+from src.models.survtrace.train_utils import Trainer
+from src.models.survtrace.losses import NLLLogistiHazardLoss, NLLPCHazardLoss
 
 import torch
 from torch.nn import BCELoss, MSELoss
@@ -43,12 +43,12 @@ class BaseModel(ABC):
         Trains self.model
         '''
         pass
-    
+
 
 class BasePycox(BaseModel):
     '''
     Defines interface for models from pycox.
-    
+
     Child of BaseModel.
 
     Attributes:
@@ -72,19 +72,19 @@ class BasePycox(BaseModel):
         '''
         Trains self.model.
 
-        Args: 
+        Args:
             - data: Data class from experiments.data_class
-        
+
         Returns:
             Nothing.
             self.model is trained.
             Updates self.epochs_trained.
         '''
-        self.log = self.model.fit(data.x_train, 
+        self.log = self.model.fit(data.x_train,
                             data.y_train,
-                            self.batch_size, 
-                            self.epochs, 
-                            self.callbacks, 
+                            self.batch_size,
+                            self.epochs,
+                            self.callbacks,
                             val_data=data.val_data
                             )
         self.epochs_trained = self.log.epoch
@@ -94,7 +94,7 @@ class BasePycox(BaseModel):
 class BaseSksurv(BaseModel):
     '''
     Defines interface for models from sksurv.
-    
+
     Child of BaseModel.
 
     Attributes:
@@ -113,15 +113,15 @@ class BaseSksurv(BaseModel):
         '''
         Trains self.model.
 
-        Args: 
+        Args:
             - data: Data class from experiments.data_class
-        
+
         Returns:
             Nothing.
             self.model is trained.
             Updates self.epochs_trained with total number of epochs from config.
         '''
-        self.model.fit(data.x_train, data.y_et_train) 
+        self.model.fit(data.x_train, data.y_et_train)
 
         # TODO: there doesn't seem to be a good way to get out how many epochs actually ran
         self.epochs_trained = self.epochs
@@ -131,19 +131,19 @@ class CauseSpecificNet(torch.nn.Module):
     """Network structure similar to the DeepHit paper.
     """
     def __init__(self, config):
-        
+
         # get number of events
-        try: 
+        try:
             self.num_event = config.num_event
         except AttributeError:
             self.num_event = 1
 
         super().__init__()
         self.shared_net = MLPVanilla(
-            in_features=config.num_feature, 
-            num_nodes=config.hidden_layers_size, 
+            in_features=config.num_feature,
+            num_nodes=config.hidden_layers_size,
             out_features=config.hidden_layers_size[0],
-            batch_norm=True, 
+            batch_norm=True,
             dropout=config.dropout,
             output_bias=True
         )
@@ -152,9 +152,9 @@ class CauseSpecificNet(torch.nn.Module):
         for _ in range(self.num_event):
             net = MLPVanilla(
                 in_features=config.hidden_layers_size[0] + config.num_feature, # concatenating shared representation and features
-                num_nodes=config.hidden_layers_size, 
+                num_nodes=config.hidden_layers_size,
                 out_features=config.out_feature,
-                batch_norm=True, 
+                batch_norm=True,
                 dropout=config.dropout,
                 output_bias=True
             )
@@ -164,7 +164,7 @@ class CauseSpecificNet(torch.nn.Module):
     def forward(self, input):
         # get share representation
         out = self.shared_net(input)
-  
+
         # concatenating shared representation and features
         out = torch.cat([out, input], dim=1)
         out = [net(out) for net in self.risk_nets]
@@ -184,7 +184,7 @@ class CPH(BaseSksurv):
     Child of BaseSksurv.
 
     References:
-        https://scikit-survival.readthedocs.io/en/stable/api/generated/sksurv.linear_model.CoxPHSurvivalAnalysis.html 
+        https://scikit-survival.readthedocs.io/en/stable/api/generated/sksurv.linear_model.CoxPHSurvivalAnalysis.html
     '''
     def __init__(self, config):
         '''
@@ -194,8 +194,8 @@ class CPH(BaseSksurv):
         super().__init__(config)
         self.eval_offset = 0
         self.model = CoxPHSurvivalAnalysis(n_iter=config.epochs, verbose=1)
-          
-    
+
+
 class DH(BasePycox):
     '''
     DeepHit model.
@@ -215,10 +215,10 @@ class DH(BasePycox):
         M = DeepHit if config.data == 'seer' else DeepHitSingle
 
         # initialize model
-        self.model = M(net, 
-                        tt.optim.Adam, 
-                        alpha=config.alpha, 
-                        sigma=config.sigma, 
+        self.model = M(net,
+                        tt.optim.Adam,
+                        alpha=config.alpha,
+                        sigma=config.sigma,
                         duration_index=config.duration_index
                         )
         self.model.optimizer.set_lr(config.learning_rate)
@@ -241,11 +241,11 @@ class DeepSurv(BasePycox):
         config.out_feature = 1   # need to overwrite value set in load_data
 
         # define neural network
-        net = MLPVanilla(in_features=config.num_feature, 
-                        num_nodes=config.hidden_layers_size, 
-                        out_features=config.out_feature, 
-                        batch_norm=True, 
-                        dropout=config.dropout, 
+        net = MLPVanilla(in_features=config.num_feature,
+                        num_nodes=config.hidden_layers_size,
+                        out_features=config.out_feature,
+                        batch_norm=True,
+                        dropout=config.dropout,
                         output_bias=True
                         )
         optim = tt.optim.Adam(lr=config.learning_rate, weight_decay=config.weight_decay)
@@ -284,16 +284,16 @@ class DSM(BaseModel):
                                     layers=config['hidden_size']
                                     )
     def train(self, data):
-        self.model.fit(data.x_train, data.train_times, data.train_outcomes, 
-                    val_data=(data.x_val, data.val_times, data.val_outcomes), 
-                    iters=self.epochs, 
+        self.model.fit(data.x_train, data.train_times, data.train_outcomes,
+                    val_data=(data.x_val, data.val_times, data.val_outcomes),
+                    iters=self.epochs,
                     learning_rate=self.learning_rate,
                     batch_size=self.batch_size
                     )
-        
+
         # TODO: find a way to get number of epochs trained
         self.epochs_trained = np.nan
-    
+
 
 
 class PCHazard(BasePycox):
@@ -311,16 +311,16 @@ class PCHazard(BasePycox):
         self.eval_offset = 1
 
         # define neural network
-        net = MLPVanilla(in_features=config.num_feature, 
-                        num_nodes=config.hidden_layers_size, 
-                        out_features=config.out_feature, 
-                        batch_norm=True, 
-                        dropout=config.dropout, 
+        net = MLPVanilla(in_features=config.num_feature,
+                        num_nodes=config.hidden_layers_size,
+                        out_features=config.out_feature,
+                        batch_norm=True,
+                        dropout=config.dropout,
                         output_bias=True
                         )
 
         # AdamWR optimizer
-        optimizer = tt.optim.AdamWR(lr=config.learning_rate, 
+        optimizer = tt.optim.AdamWR(lr=config.learning_rate,
                                     decoupled_weight_decay=config.decoupled_weight_decay,
                                     cycle_multiplier=config.cycle_multiplier
                                     )
@@ -345,7 +345,7 @@ class RSF(BaseSksurv):
         '''
         super().__init__(config)
         self.eval_offset = 0
-        self.model = RandomSurvivalForest(n_estimators=config.epochs, 
+        self.model = RandomSurvivalForest(n_estimators=config.epochs,
                                             verbose=1,
                                             max_depth=config.max_depth,
                                             n_jobs=-1
@@ -354,7 +354,7 @@ class RSF(BaseSksurv):
 class SurvTRACE(BaseModel):
     '''
     Class to run SurvTRACE and its variants.
-    
+
     Child of BaseModel.
 
     Attributes:
@@ -407,16 +407,16 @@ class SurvTRACE(BaseModel):
         '''
         Trains self.model.
 
-        Args: 
+        Args:
             - data: Data class from experiments.data_class
-        
+
         Returns:
             Nothing.
             self.model is trained.
             Updates self.epochs_trained with total number of epochs from config.
         '''
-        train_loss, val_loss, last_epoch = self.trainer.fit((data.df_train, data.df_y_train), 
-                                                            (data.df_val, data.df_y_val), 
+        train_loss, val_loss, last_epoch = self.trainer.fit((data.df_train, data.df_y_train),
+                                                            (data.df_val, data.df_y_val),
                                                             **self.hyperparameters
                                                             )
         self.epochs_trained = last_epoch

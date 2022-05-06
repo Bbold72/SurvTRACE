@@ -92,3 +92,9 @@ Alternatively you could do each step separately:
    make datasets [-e NUM_RUNS=10]
    ```
 
+4. Run experiments. By default it does 10 runs, but you can change the NUM_RUNS argument.
+
+   ```shell
+   make experiments [-e NUM_RUNS=10]
+   ```
+
