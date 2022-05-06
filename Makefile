@@ -34,7 +34,7 @@ experiments:
 	@$(PYTHON_INTERPRETER) src/experiments/make_experiments.py --num_runs=$(NUM_RUNS)
 
 result:
-	@echo ">>> Printint results."
+	@echo ">>> Printing results."
 	@$(PYTHON_INTERPRETER) src/results/make_results.py
 
 ## Delete all compiled Python files and processed datasets
