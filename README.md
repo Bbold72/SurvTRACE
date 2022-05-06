@@ -54,12 +54,12 @@ For this project we use different datasets to run our experiments.
 
 2. After complete the step one, we should have the **seerstat software** for data access. Open it and sign in with the username and password sent by seer.
 
-3. Use seerstat to open the **./data/seer.sl** file. Click on the 'excute' icon to request from the seer database. We will obtain a csv file.
+3. Use seerstat to open the **./data/external/seer.sl** file. Click on the 'excute' icon to request from the seer database. We will obtain a csv file.
 
-4. Move the csv file to **./data/seer_raw.csv**, then run the python script **process_seer.py**, as
+4. Move the csv file to **./data/raw/seer_raw.csv**, then run script to create the processed data, as
 
    ```shell
-   python process_seer.py
+   make data
    ```
 
-   we will obtain the processed seer data named **seer_processed.csv**.
+   we will obtain the processed seer data named **seer_processed.csv** located in **./data/processed/**.
