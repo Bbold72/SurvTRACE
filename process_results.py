@@ -1,12 +1,14 @@
 # process and format all of the pickle files in '/results'.
-
+import os
+import pickle
+import logging
 import numpy as np
 import pandas as pd
 from pandas.api.types import CategoricalDtype
 from pathlib import Path
-import pickle
-import os
 from typing import Tuple
+
+logger = logging.getLogger(__name__)
 
 
 # TODO: maybe export aggregated results either in this function or within main
@@ -14,9 +16,9 @@ def aggregate_raw_data() -> pd.DataFrame:
     '''
     Processes all of the pickle files in '/results' into a dataframe.
 
-    Each file contains the results of a model evaluated on a dataset. 
+    Each file contains the results of a model evaluated on a dataset.
     It is a list of dictionaries of metrics where each element in the
-    list represents a run of the experiment. 
+    list represents a run of the experiment.
 
     Metrics:
         - 0.25_ipcw: time-dependent concordance index at 25% quantile
@@ -27,14 +29,14 @@ def aggregate_raw_data() -> pd.DataFrame:
         - epochs_trained: number epochs trained for
         - time_per_epoch: training time per epoch (train_time / epochs_trained)
 
-    Naming of file: 
+    Naming of file:
     - w/o censoring:
         '{model name}_{dataset name}.pickle'.
     - w/ censoring:
         '{model name}_{dataset name}_{event_#}.pickle' where # is '0' or '1'.
-    
+
     For each file/experiment, dictionary is converted to a dataframe and the runs
-    are aggregated by calculating mean and standard deviation. 
+    are aggregated by calculating mean and standard deviation.
     Each resulting dataframe in concatenated at the end with all other experiments.
 
     Resulting dataframe structure:
@@ -50,17 +52,19 @@ def aggregate_raw_data() -> pd.DataFrame:
 
     Args:
         None
-    
+
     Return:
         A dataframe of aggregated results of all experiments.
     '''
     df_list = []
     for file_name in os.listdir(Path('results')):
-
+        print(file_name)
         with open(Path('results', file_name), 'rb') as f:
             result = pickle.load(f)
         result = pd.DataFrame(result)
         file_name = file_name.split('.')[0]
+        if not result.size:
+            continue
 
         agg_df = (result.agg(['mean', 'std'])
                         .transpose()
@@ -108,31 +112,31 @@ def format_df(df: pd.DataFrame, is_compare_df: bool=False):
 
     Args:
         df: (pd.Dataframe): dataframe of results in long format.
-        is_compare_df (bool): if comparing our results with the authors, 
-            format percents. 
-    
+        is_compare_df (bool): if comparing our results with the authors,
+            format percents.
+
     Return:
         # TODO: Export latex file
         prints table of results for paper in latex format
     '''
-    df = (df.round({'mean': 3, 
+    df = (df.round({'mean': 3,
                     'std': 3
                     })
             .assign(metric = lambda x: x['mean'].apply(str) + '(' + x['std'].apply(str) + ')',
                         )
             .drop(columns=['mean', 'std'])
             .sort_values(by=['dataset', 'model_name', 'horizon'])
-            ) 
+            )
     if is_compare_df:
         df['metric'] = df['metric'].str.replace(r'\(.*\)', '%', regex=True)
 
     mask = df['horizon'].str.contains('brier', regex=False)
-    df = (df[~mask].pivot(index=['model_name'], 
-                                        columns=['dataset', 'horizon'], 
+    df = (df[~mask].pivot(index=['model_name'],
+                                        columns=['dataset', 'horizon'],
                                         values=['metric']
                                         )
-                    )       
-    print(df.to_latex())
+                    )
+    logger.info(df.to_latex())
 
 
 def subset_on_seer(df: pd.DataFrame) -> Tuple[pd.DataFrame, pd.DataFrame]:
@@ -212,13 +216,13 @@ def compare_author_results(df: pd.DataFrame) -> pd.DataFrame:
     '''
     Compare our results with authors' results.
 
-    Reads in 'author_results.csv' and merges dataframe of our results 
-    on authors' results, and thencalcuate percent difference of 
+    Reads in 'author_results.csv' and merges dataframe of our results
+    on authors' results, and thencalcuate percent difference of
     our results with authors' results
 
     Args:
         - df (pd.Dataframe): dataframe of results in long format.
-    
+
     Returns:
         - df (pd.Dataframe): dataframe of comarision in long format.
     '''
@@ -236,7 +240,7 @@ def compare_author_results(df: pd.DataFrame) -> pd.DataFrame:
 
     compare_df = compare_df.drop(columns=['mean_x', 'std_x', 'mean_y', 'std_y'])
 
-    return compare_df 
+    return compare_df
 
 def main():
     agg_df = (aggregate_raw_data().reset_index()
@@ -261,14 +265,14 @@ def main():
     # remove compuational requirements from metrics
     df_single, df_single_comp = subset_computational_requirements(df_single)
     df_competing, df_competing_comp = subset_computational_requirements(df_competing)
-    
+
     # label competing events
     df_competing = label_competing_events_seer(df_competing)
 
 
     # compare our results with authors results
     compare_df = compare_author_results(agg_df)
-    compare_df_single, compare_df_competing = subset_on_seer(compare_df)  
+    compare_df_single, compare_df_competing = subset_on_seer(compare_df)
     compare_df_competing['event_num'] = compare_df_competing['event_num'].apply(int).apply(str)
     compare_df_competing = label_competing_events_seer(compare_df_competing)
 
@@ -286,17 +290,19 @@ def main():
 
     # some rando stats
     N = len(compare_df)
-
     def within_percent(percent):
         num_within_percent = sum(compare_df['mean'].abs() <= percent)
         print(f"Percent of Results within {percent}% of Authors':", round((num_within_percent/N)*100, 0))
-    
+
     list(map(within_percent, [5, 3, 1]))
     num_above = sum(compare_df['mean'] > 0)
     print('Number of results above authors:', num_above)
     print('Percent of results above authors:', round((num_above/N)*100, 0))
 
 if __name__ == '__main__':
+    log_fmt = '%(asctime)s - %(levelname)s - %(message)s'
+    logging.basicConfig(level=logging.INFO, format=log_fmt)
+
     main()
 
 
