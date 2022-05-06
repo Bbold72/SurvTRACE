@@ -6,8 +6,8 @@ from typing import Tuple
 from easydict import EasyDict
 import numpy as np
 from sksurv.metrics import concordance_index_ipcw
-from experiments.utils import df_to_event_time_array
-from experiments.data_class import Data
+from src.utils.utils import df_to_event_time_array
+from src.utils.data_class import Data
 
 class EvaluatorBase:
     """
@@ -21,7 +21,7 @@ class EvaluatorBase:
         - x_eval: features data to evaluate on. either validation or test set
         - df_y_eval: dataframe of events and durations to evaluate on.
         - times: duration indexes
-        - horionzs: quantiles 
+        - horionzs: quantiles
         - metric_dict: (defaultdict): stores calculated metrics
     """
     def __init__(self, data: Data, model, config: EasyDict, test_set: bool=True):
@@ -30,7 +30,7 @@ class EvaluatorBase:
             - data: class from experiments.Data
             - model: class from experiments.models
             - config: configuration file from experiments.configurations
-            - test_set (bool): 
+            - test_set (bool):
                 - True: evaluate on test set
                 - False: evaluate on validation set
         '''
@@ -51,7 +51,7 @@ class EvaluatorBase:
         self.times = config['duration_index'][1:-1]
         self.horizons = config['horizons']
         self.metric_dict = defaultdict(list)
-    
+
 
     def _make_event_time_array(self, event_var_name: str) -> Tuple[np.array, np.array]:
         '''
@@ -59,7 +59,7 @@ class EvaluatorBase:
 
         Args:
             - event_var_name (str): variable name of event
-        
+
         Returns:
             - tuple of event time arrays
             - Tuple[0]: training data
@@ -67,7 +67,7 @@ class EvaluatorBase:
         '''
         def helper(df):
             return df_to_event_time_array(df, event_var_name=event_var_name)
-        
+
         return helper(self.df_train_all), helper(self.df_y_eval)
 
 
@@ -99,8 +99,8 @@ class EvaluatorBase:
         for horizon in enumerate(self.horizons):
             print(f"{event_print_label}For {horizon[1]} quantile,")
             print("TD Concordance Index - IPCW:", cis[horizon[0]])
-    
-    
+
+
     @abc.abstractclassmethod
     def _calc_risk(self):
         '''
@@ -121,7 +121,7 @@ class EvaluatorBase:
         Calculates time dependent concordance index and return metrics.
         '''
         pass
-        
+
 
 class EvaluatorSingle(EvaluatorBase):
     """
@@ -135,14 +135,14 @@ class EvaluatorSingle(EvaluatorBase):
             - data: class from experiments.Data
             - model: class from experiments.models
             - config: configuration file from experiments.configurations
-            - test_set (bool): 
+            - test_set (bool):
                 - True: evaluate on test set
                 - False: evaluate on validation set
         '''
         super().__init__(data, model, config, test_set)
-   
+
     # TODO: move to baselinse.models
-    #   ideally it would be nice to have a generic interface for calculating risk in experiments.models 
+    #   ideally it would be nice to have a generic interface for calculating risk in experiments.models
     #   like the train method. This may requrie additional refactor of evaluators and models to make that work
     # Note: self.model.model.{function}:
     #   - first model references a class from experiments.models
@@ -193,7 +193,7 @@ class EvaluatorSingle(EvaluatorBase):
         '''
         self.calc_concordance_index_ipcw()
         return self.metric_dict
-        
+
 
 
 class EvaluatorCompeting(EvaluatorBase):
@@ -211,7 +211,7 @@ class EvaluatorCompeting(EvaluatorBase):
             - data: class from experiments.Data
             - model: class from experiments.models
             - config: configuration file from experiments.configurations
-            - test_set (bool): 
+            - test_set (bool):
                 - True: evaluate on test set
                 - False: evaluate on validation set
         '''
@@ -219,7 +219,7 @@ class EvaluatorCompeting(EvaluatorBase):
         self.num_event = config.num_event
 
     # TODO: move to baselinse.models
-    #   ideally it would be nice to have a generic interface for calculating risk in experiments.models 
+    #   ideally it would be nice to have a generic interface for calculating risk in experiments.models
     #   like the train method. This may requrie additional refactor of evaluators and models to make that work
     # Note: self.model.model.{function}:
     #   - first model references a class from experiments.models
@@ -255,9 +255,9 @@ class EvaluatorCompeting(EvaluatorBase):
         '''
         risk = self._calc_risk(event_idx)
         event_dict_label = f'_{event_idx}'
-        event_print_label = f'Event: {event_idx} ' 
+        event_print_label = f'Event: {event_idx} '
         self._calc_concordance_index_ipcw_base(risk, event_var_name, event_dict_label, event_print_label)
-    
+
 
     def eval(self):
         '''

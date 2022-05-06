@@ -3,7 +3,7 @@ import numpy as np
 import pickle
 import os
 
-from experiments.utils import df_to_event_time_array
+from src.utils.utils import df_to_event_time_array
 
 ROOT_DIR = os.path.realpath(os.path.join(os.path.dirname(__file__), '..', '..'))
 DATA_DIR = os.path.join(ROOT_DIR, 'data/processed')

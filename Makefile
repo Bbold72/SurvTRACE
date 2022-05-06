@@ -31,7 +31,7 @@ dataset:
 
 experiments:
 	@echo ">>> Running experiments with $(NUM_RUNS) runs."
-	@$(PYTHON_INTERPRETER) src/make_experiments.py --num_runs=$(NUM_RUNS)
+	@$(PYTHON_INTERPRETER) src/experiments/make_experiments.py --num_runs=$(NUM_RUNS)
 
 result:
 	@echo ">>> Printint results."

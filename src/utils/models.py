@@ -19,7 +19,7 @@ import torch
 from torch.nn import BCELoss, MSELoss
 from torchtuples.practical import MLPVanilla
 
-from experiments.data_class import Data
+from src.utils.data_class import Data
 
 class BaseModel(ABC):
     '''

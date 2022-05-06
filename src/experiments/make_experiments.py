@@ -3,11 +3,11 @@ import click
 import logging
 from typing import Optional
 
-from experiments import configurations
-from experiments.data_class import Data
-from experiments.evaluator import EvaluatorSingle, EvaluatorCompeting
-from experiments.models import CPH, DH, DeepSurv, DSM, PCHazard, RSF, SurvTRACE
-from experiments.utils import export_results, update_run
+from src.utils import configurations
+from src.utils.data_class import Data
+from src.utils.evaluator import EvaluatorSingle, EvaluatorCompeting
+from src.utils.models import CPH, DH, DeepSurv, DSM, PCHazard, RSF, SurvTRACE
+from src.utils.utils import export_results, update_run
 
 logger = logging.getLogger(__name__)
 
