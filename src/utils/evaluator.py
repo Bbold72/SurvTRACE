@@ -15,7 +15,7 @@ class EvaluatorBase:
 
     Attributes:
         - model_name (str): name of model evaluated on
-        - model: class from experiments.model
+        - model: class from utils.model
         - offset: number columns to skip from the left of risk calculation
         - df_train_all: dataframe with features and events & durations trained on
         - x_eval: features data to evaluate on. either validation or test set
@@ -27,9 +27,9 @@ class EvaluatorBase:
     def __init__(self, data: Data, model, config: EasyDict, test_set: bool=True):
         '''
         Args:
-            - data: class from experiments.Data
-            - model: class from experiments.models
-            - config: configuration file from experiments.configurations
+            - data: class from utils.Data
+            - model: class from utils.models
+            - config: configuration file from utils.configurations
             - test_set (bool):
                 - True: evaluate on test set
                 - False: evaluate on validation set
@@ -132,9 +132,9 @@ class EvaluatorSingle(EvaluatorBase):
     def __init__(self, data: Data, model, config: EasyDict, test_set: bool=True):
         '''
         Args:
-            - data: class from experiments.Data
-            - model: class from experiments.models
-            - config: configuration file from experiments.configurations
+            - data: class from utils.Data
+            - model: class from utils.models
+            - config: configuration file from utils.configurations
             - test_set (bool):
                 - True: evaluate on test set
                 - False: evaluate on validation set
@@ -142,10 +142,10 @@ class EvaluatorSingle(EvaluatorBase):
         super().__init__(data, model, config, test_set)
 
     # TODO: move to baselinse.models
-    #   ideally it would be nice to have a generic interface for calculating risk in experiments.models
+    #   ideally it would be nice to have a generic interface for calculating risk in utils.models
     #   like the train method. This may requrie additional refactor of evaluators and models to make that work
     # Note: self.model.model.{function}:
-    #   - first model references a class from experiments.models
+    #   - first model references a class from utils.models
     #   - second model references a model from pycox, sksurv, DSM
     def _calc_risk(self):
         '''
@@ -208,9 +208,9 @@ class EvaluatorCompeting(EvaluatorBase):
     def __init__(self, data: Data, model, config: EasyDict, test_set: bool=True):
         '''
         Args:
-            - data: class from experiments.Data
-            - model: class from experiments.models
-            - config: configuration file from experiments.configurations
+            - data: class from utils.Data
+            - model: class from utils.models
+            - config: configuration file from utils.configurations
             - test_set (bool):
                 - True: evaluate on test set
                 - False: evaluate on validation set
@@ -219,10 +219,10 @@ class EvaluatorCompeting(EvaluatorBase):
         self.num_event = config.num_event
 
     # TODO: move to baselinse.models
-    #   ideally it would be nice to have a generic interface for calculating risk in experiments.models
+    #   ideally it would be nice to have a generic interface for calculating risk in utils.models
     #   like the train method. This may requrie additional refactor of evaluators and models to make that work
     # Note: self.model.model.{function}:
-    #   - first model references a class from experiments.models
+    #   - first model references a class from utils.models
     #   - second model references a model from pycox, sksurv, DSM
     def _calc_risk(self, event_idx):
         '''

@@ -44,11 +44,11 @@ def run_experiment(dataset_name: str, model_name: str, num_runs=10, event_to_cen
     Runs baseline model experiment from beginning to end.
 
     Loads, processes, and split data into train, validation, test dataframes.
-    These dataframes are stored in baselines.Data class.
+    These dataframes are stored in utils.data_class.Data class.
     If censoring data, event_to_censor will have its values turned to zero.
     Additional post-processing to transform data into correct format for each model.
-    A model from baselines.models is instantiated and trained, and then a trained
-    model is passed to a baselines.evaluators class to calculate the
+    A model from utils.models is instantiated and trained, and then a trained
+    model is passed to a utils.evaluator class to calculate the
     time dependent concordance index. Then results are exported to a pickle file
     and saved in directory 'results/'.
 
