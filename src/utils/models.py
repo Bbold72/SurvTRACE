@@ -60,7 +60,7 @@ class BasePycox(BaseModel):
     def __init__(self, config: EasyDict):
         '''
         Args:
-            - config: configuration dictionary from experiments.configurations
+            - config: configuration dictionary from utils.configurations
         '''
         super().__init__()
         self.batch_size = config.batch_size
@@ -73,7 +73,7 @@ class BasePycox(BaseModel):
         Trains self.model.
 
         Args:
-            - data: Data class from experiments.data_class
+            - data: Data class from utils.data_class
 
         Returns:
             Nothing.
@@ -103,7 +103,7 @@ class BaseSksurv(BaseModel):
     def __init__(self, config: EasyDict):
         '''
         Args:
-            - config: configuration dictionary from experiments.configurations
+            - config: configuration dictionary from utils.configurations
         '''
         super().__init__()
         self.epochs = config.epochs
@@ -114,7 +114,7 @@ class BaseSksurv(BaseModel):
         Trains self.model.
 
         Args:
-            - data: Data class from experiments.data_class
+            - data: Data class from utils.data_class
 
         Returns:
             Nothing.
@@ -189,7 +189,7 @@ class CPH(BaseSksurv):
     def __init__(self, config):
         '''
         Args:
-            - config: configuration dictionary from experiments.configurations
+            - config: configuration dictionary from utils.configurations
         '''
         super().__init__(config)
         self.eval_offset = 0
@@ -205,7 +205,7 @@ class DH(BasePycox):
     def __init__(self, config):
         '''
         Args:
-            - config: configuration dictionary from experiments.configurations
+            - config: configuration dictionary from utils.configurations
         '''
         super().__init__(config)
         self.eval_offset = 0
@@ -233,7 +233,7 @@ class DeepSurv(BasePycox):
     def __init__(self, config):
         '''
         Args:
-            - config: configuration dictionary from experiments.configurations
+            - config: configuration dictionary from utils.configurations
         '''
         super().__init__(config)
         self.eval_offset = 0
@@ -271,7 +271,7 @@ class DSM(BaseModel):
     def __init__(self, config):
         '''
         Args:
-            - config: configuration dictionary from experiments.configurations
+            - config: configuration dictionary from utils.configurations
         '''
         super().__init__()
         self.eval_offset = 0
@@ -305,7 +305,7 @@ class PCHazard(BasePycox):
     def __init__(self, config):
         '''
         Args:
-            - config: configuration dictionary from experiments.configurations
+            - config: configuration dictionary from utils.configurations
         '''
         super().__init__(config)
         self.eval_offset = 1
@@ -341,7 +341,7 @@ class RSF(BaseSksurv):
     def __init__(self, config):
         '''
         Args:
-            - config: configuration dictionary from experiments.configurations
+            - config: configuration dictionary from utils.configurations
         '''
         super().__init__(config)
         self.eval_offset = 0
@@ -366,7 +366,7 @@ class SurvTRACE(BaseModel):
     def __init__(self, config):
         '''
         Args:
-            - config: configuration dictionary from experiments.configurations
+            - config: configuration dictionary from utils.configurations
         '''
         super().__init__()
         self.eval_offset = 1
@@ -408,7 +408,7 @@ class SurvTRACE(BaseModel):
         Trains self.model.
 
         Args:
-            - data: Data class from experiments.data_class
+            - data: Data class from utils.data_class
 
         Returns:
             Nothing.
