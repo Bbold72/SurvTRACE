@@ -1,4 +1,4 @@
-.PHONY: clean run experiments results
+.PHONY: clean data run experiments results
 
 #################################################################################
 # GLOBALS                                                                       #
