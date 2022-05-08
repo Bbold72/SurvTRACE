@@ -166,3 +166,4 @@ zipfile-deflate64=0.2.0=pypi_0
 zipp=3.6.0=pyhd3eb1b0_0
 zlib=1.2.11=h4dc903c_4
 zstd=1.4.9=h322a384_0
+tqdm

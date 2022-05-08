@@ -22,6 +22,11 @@ conda env create --name survtrace --file=survtrace.yml
 conda activate survtrace
 ```
 
+then install as a package
+```bash
+pip install -e .
+```
+
 or try to install from the requirement.txt
 
 ```bash
