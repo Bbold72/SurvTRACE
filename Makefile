@@ -33,7 +33,7 @@ experiments:
 	@echo ">>> Running experiments with $(NUM_RUNS) runs."
 	@$(PYTHON_INTERPRETER) src/experiments/make_experiments.py --num_runs=$(NUM_RUNS)
 
-result:
+results:
 	@echo ">>> Printing results."
 	@$(PYTHON_INTERPRETER) src/results/make_results.py
 
