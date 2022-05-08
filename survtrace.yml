@@ -20,4 +20,5 @@ dependencies:
     - pycox==0.2.2
     - pandas==1.1.5
     - easydict==1.9
+    - click==8.0.3
 prefix: E:\anaconda3\envs\survtrace
