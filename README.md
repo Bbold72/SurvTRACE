@@ -1,5 +1,8 @@
 # Reproducibility of SurvTRACE: Transformers for Survival Analysis with Competing Events
 
+
+![results](results.png "Results")
+
 ### Original Paper and Repository
 
 This repository is based and inspired on the following work:
